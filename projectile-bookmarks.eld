@@ -1,0 +1,1 @@
+("~/.emacs.d/" "~/IdeaProjects/spring-data-jpa/")
