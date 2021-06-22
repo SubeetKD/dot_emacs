@@ -50,9 +50,12 @@
   kept-old-versions 5    ; and how many of the old
   )
 
+(setq auto-save-file-name-transforms
+  `((".*" "~/.emacs-saves/" t)))
+
 ;; font use
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 140)
+(set-face-attribute 'default nil :font "Ubuntu Mono" :height 150)
 
 (setq visible-bell 1)
 
@@ -183,8 +186,8 @@ If all failed, try to complete the common part with `company-complete-common'"
           (company-complete-common))))))
 
 ;; company front-end
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+;; (use-package company-box
+;;   :hook (company-mode . company-box-mode))
 
 
 ;; projectile configuration
@@ -236,6 +239,9 @@ If all failed, try to complete the common part with `company-complete-common'"
 	("M-RET" . lsp-execute-code-action))
   :config
   (lsp-enable-which-key-integration t)
+
+  ;; turn off the autoformatting
+  (setq lsp-enable-on-type-formatting 0)
 
   ;; performance tweaks
   (setq gc-cons-threshold 1000000000)
