@@ -25,7 +25,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
+   '(org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -42,6 +42,9 @@
 
 (menu-bar-mode -1)
 
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
   backup-by-copying t    ; Don't delink hardlinks
   version-control t      ; Use version numbers on backups
@@ -51,7 +54,7 @@
   )
 
 (setq auto-save-file-name-transforms
-  `((".*" "~/.emacs-saves/" t)))
+  `((".*" "~/.emacs.d/backup/" t)))
 
 ;; font use
 
@@ -73,8 +76,9 @@
 
 ;; disable for some mode
 (dolist (mode '(org-mode-hook
-		term-mode-hook
-		eshell-mode-hook))
+		        term-mode-hook
+                vterm-mode-hook
+		        eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;; which keyb
@@ -100,7 +104,7 @@
   :config
   (setq doom-themes-enable-bold t
 	doom-themes-enable-italic t)
-  (load-theme 'doom-one t)
+  (load-theme 'doom-dracula t)
   (doom-themes-visual-bell-config)
   (doom-themes-org-config))
 
@@ -203,9 +207,10 @@ If all failed, try to complete the common part with `company-complete-common'"
   (setq projectile-switch-project-action #'projectile-dired))
 
 
+
 ;; better integration between counsel and projectile
-;; (use-package counsel-projectile
-;;   :config (counsel-projectile-mode))
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
 
 
 ;; 
@@ -225,6 +230,7 @@ If all failed, try to complete the common part with `company-complete-common'"
 
   
 ;; if you are helm user
+(use-package helm)
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 ;; if you are ivy user
 (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
@@ -258,7 +264,8 @@ If all failed, try to complete the common part with `company-complete-common'"
 ;; set up the terminal
 (use-package vterm)
 
-(use-package vterm-toggle
+
+;; better org-mode
+(use-package org-bullets
   :config
-  (global-set-key [f2] 'vterm-toggle)
-  (global-set-key [C-f2] 'vterm-toggle-cd))
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
