@@ -1,1 +1,1 @@
-("~/.emacs.d/" "~/IdeaProjects/spring-data-jpa/" "~/coding/" "~/Desktop/Dotfile/")
+("~/.emacs.d/" "~/IdeaProjects/spring-data-jpa/" "~/coding/" "~/Desktop/Dotfile/" "~/IdeaProjects/spring-data-jpa/" "~/Projects/spring-boot-kalka-producer/" "~/.emacs.d/" "~/Projects/spring-boot-kalka-producer/src/main/resources/" "~/Projects/spring-demo/")
