@@ -25,7 +25,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
+   '(flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -58,7 +58,7 @@
 
 ;; font use
 
-(set-face-attribute 'default nil :font "Ubuntu Mono" :height 150)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd font" :height 120)
 
 (setq visible-bell 1)
 
@@ -156,16 +156,34 @@
   (:map company-active-map
 	("<return>" . nil)
 	("<tab>" . smarter-tab-to-complete))
-  :custom
-  (company-minimum-prefix-lenght 1)
-  (company-tooltip-align-annotations t)
-  (company-require-match 'never)
-    ;; Don't use company in the following modes
-  (company-global-modes '(not shell-mode eaf-mode))
-  ;; Trigger completion immediately.
-  (company-idle-delay 0.1)
-  ;; Number the candidates (use M-1, M-2 etc to select completions).
-  (company-show-numbers t)
+  :init
+  (setq company-minimum-prefix-length 2
+        company-tooltip-limit 14
+        company-tooltip-align-annotations t
+        company-require-match 'never
+        company-global-modes
+        '(not erc-mode
+              message-mode
+              help-mode
+              gud-mode
+              vterm-mode)
+        company-frontends
+        '(company-pseudo-tooltip-frontend  ;; always show candidates in overlay tooltip
+          company-echo-metadata-frontend)  ;; show selected candidates docs in echo area
+
+        company-backends '(company-capf)
+
+        company-auto-complete nil
+        company-auto-complete-chars nil
+     
+        company-idle-delay 0.1
+        ;; only search the current buffer for 'company-dabbrev'
+        ;; If lots of buffer then there is lag.
+        company-dabbrev-other-buffers nil
+
+        ;; make buffer completion fully case sensitive
+        company-dabbrev-ignore-case nil
+        company-dabbrev-downcase nil)
   :config
   ;; (unless clangd-p (delete 'company-clang company-backends))
   (global-company-mode 1)
@@ -228,13 +246,22 @@ If all failed, try to complete the common part with `company-complete-common'"
 
   (setq lsp-lens-enable t))
 
+
+;; syntax checking
+(use-package flycheck
+  :config
+  (add-hook 'prog-mode-hook (lambda () (global-flycheck-mode))))
+
   
 ;; if you are helm user
 (use-package helm)
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 ;; if you are ivy user
 (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+(use-package lsp-treemacs
+  :commands lsp-treemacs-errors-list
+  :config
+  (lsp-treemacs-sync-mode 1))
 
 ;; java lsp
 (use-package lsp-mode
@@ -269,3 +296,8 @@ If all failed, try to complete the common part with `company-complete-common'"
 (use-package org-bullets
   :config
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+
+;; treemacs
+(use-package treemacs)
+(use-package treemacs-projectile)
