@@ -1,4 +1,3 @@
-;; setup package system
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -25,7 +24,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
+   '(yasnippet treemacs helm flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -56,9 +55,11 @@
 (setq auto-save-file-name-transforms
   `((".*" "~/.emacs.d/backup/" t)))
 
+(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+
 ;; font use
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd font" :height 120)
+(set-face-attribute 'default nil :font "Liberation Mono" :height 120)
 
 (setq visible-bell 1)
 
@@ -104,7 +105,7 @@
   :config
   (setq doom-themes-enable-bold t
 	doom-themes-enable-italic t)
-  (load-theme 'doom-dracula t)
+  (load-theme 'doom-one t)
   (doom-themes-visual-bell-config)
   (doom-themes-org-config))
 
@@ -147,70 +148,81 @@
   (ivy-rich-mode 1)
   (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
 
+;; basic company setup
+(use-package company
+  :hook ((prog-mode) . company-mode)
+  :init
+  (setq company-minimum-prefix-length 1
+        company-backends '(company-capf)
+        company-idle-delay 0))
+
+;; yas mode
+(use-package yasnippet
+  :config
+  (yas-global-mode 1))
  
 ;; company mode
-(use-package company
-  :diminish company-mode
-  :hook ((prog-mode) . company-mode)
-  :bind
-  (:map company-active-map
-	("<return>" . nil)
-	("<tab>" . smarter-tab-to-complete))
-  :init
-  (setq company-minimum-prefix-length 2
-        company-tooltip-limit 14
-        company-tooltip-align-annotations t
-        company-require-match 'never
-        company-global-modes
-        '(not erc-mode
-              message-mode
-              help-mode
-              gud-mode
-              vterm-mode)
-        company-frontends
-        '(company-pseudo-tooltip-frontend  ;; always show candidates in overlay tooltip
-          company-echo-metadata-frontend)  ;; show selected candidates docs in echo area
+;; (use-package company
+;;   :diminish company-mode
+;;   :hook ((prog-mode) . company-mode)
+;;   :bind
+;;   (:map company-active-map
+;; 	("<return>" . nil)
+;; 	("<tab>" . smarter-tab-to-complete))
+;;   :init
+;;   (setq company-minimum-prefix-length 2
+;;         company-tooltip-limit 14
+;;         company-tooltip-align-annotations t
+;;         company-require-match 'never
+;;         company-global-modes
+;;         '(not erc-mode
+;;               message-mode
+;;               help-mode
+;;               gud-mode
+;;               vterm-mode)
+;;         company-frontends
+;;         '(company-pseudo-tooltip-frontend  ;; always show candidates in overlay tooltip
+;;           company-echo-metadata-frontend)  ;; show selected candidates docs in echo area
 
-        company-backends '(company-capf)
+;;         company-backends '(company-capf)
 
-        company-auto-complete nil
-        company-auto-complete-chars nil
+;;         company-auto-complete nil
+;;         company-auto-complete-chars nil
      
-        company-idle-delay 0.1
-        ;; only search the current buffer for 'company-dabbrev'
-        ;; If lots of buffer then there is lag.
-        company-dabbrev-other-buffers nil
+;;         company-idle-delay 0.1
+;;         ;; only search the current buffer for 'company-dabbrev'
+;;         ;; If lots of buffer then there is lag.
+;;         company-dabbrev-other-buffers nil
 
-        ;; make buffer completion fully case sensitive
-        company-dabbrev-ignore-case nil
-        company-dabbrev-downcase nil)
-  :config
-  ;; (unless clangd-p (delete 'company-clang company-backends))
-  (global-company-mode 1)
-  (add-to-list 'company-backends '(company-capf))
-  (defun smarter-tab-to-complete ()
-    "Try to `org-cycle', `yas-expand', and `yas-next-field' at current cursor position.
+;;         ;; make buffer completion fully case sensitive
+;;         company-dabbrev-ignore-case nil
+;;         company-dabbrev-downcase nil)
+;;   :config
+;;   ;; (unless clangd-p (delete 'company-clang company-backends))
+;;   (global-company-mode 1)
+;;   (add-to-list 'company-backends '(company-capf))
+;;   (defun smarter-tab-to-complete ()
+;;     "Try to `org-cycle', `yas-expand', and `yas-next-field' at current cursor position.
 
-If all failed, try to complete the common part with `company-complete-common'"
-    (interactive)
-    (when yas-minor-mode
-      (let ((old-point (point))
-            (old-tick (buffer-chars-modified-tick))
-            (func-list
-             (if (equal major-mode 'org-mode) '(org-cycle yas-expand yas-next-field)
-               '(yas-expand yas-next-field))))
-        (catch 'func-suceed
-          (dolist (func func-list)
-            (ignore-errors (call-interactively func))
-            (unless (and (eq old-point (point))
-                         (eq old-tick (buffer-chars-modified-tick)))
-              (throw 'func-suceed t)))
-          (company-complete-common))))))
+;; If all failed, try to complete the common part with `company-complete-common'"
+;;     (interactive)
+;;     (when yas-minor-mode
+;;       (let ((old-point (point))
+;;             (old-tick (buffer-chars-modified-tick))
+;;             (func-list
+;;              (if (equal major-mode 'org-mode) '(org-cycle yas-expand yas-next-field)
+;;                '(yas-expand yas-next-field))))
+;;         (catch 'func-suceed
+;;           (dolist (func func-list)
+;;             (ignore-errors (call-interactively func))
+;;             (unless (and (eq old-point (point))
+;;                          (eq old-tick (buffer-chars-modified-tick)))
+;;               (throw 'func-suceed t)))
+;;           (company-complete-common))))))
 
 ;; company front-end
 ;; (use-package company-box
 ;;   :hook (company-mode . company-box-mode))
-
 
 ;; projectile configuration
 (use-package projectile
@@ -233,7 +245,9 @@ If all failed, try to complete the common part with `company-complete-common'"
 
 ;; 
 (use-package magit
-  :commands (magit-status magit-get-current-branch))
+  :commands (magit-status magit-get-current-branch)
+  :config
+  (global-set-key (kbd "C-c g") 'magit))
 
 
 ;; lsp mode
@@ -276,6 +290,9 @@ If all failed, try to complete the common part with `company-complete-common'"
   ;; turn off the autoformatting
   (setq lsp-enable-on-type-formatting 0)
 
+  ;; setting the default completion provider for lsp
+  (setq lsp-completion-provider :capf)
+
   ;; performance tweaks
   (setq gc-cons-threshold 1000000000)
   (setq read-process-output-max (* 1024 1024))
@@ -284,7 +301,14 @@ If all failed, try to complete the common part with `company-complete-common'"
 
 ;; set lsp-java
 (use-package lsp-java
+  :init
+  (setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
   :config
+  ;; (setq lsp-java-configuration-runtimes '[(:name "JavaSE-11"
+  ;;                                                :path "/usr/lib/jvm/java-11-openjdk-amd64")
+  ;;                                         (:name "JavaSE-8"
+  ;;                                                :path "/usr/lib/jvm/java-8-openjdk-amd64"
+  ;;                                                :default t)])
   (add-hook 'java-mode-hook #'lsp)
   (setq tab-width 4))
 

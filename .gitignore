@@ -6,3 +6,5 @@ trasient
 /.cache/
 /.lsp-session-v1
 eshell/
+/transient/
+/recentf

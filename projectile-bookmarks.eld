@@ -1,1 +1,1 @@
-("~/.emacs.d/" "~/Projects/another-app-for-main/" "~/IdeaProjects/spring-data-jpa/" "~/coding/" "~/Projects/better-async/src/main/resources/" "~/Projects/better-async/" "~/Projects/async/" "~/Projects/spring-demo/" "~/Projects/spring-boot-kalka-producer/" "~/Desktop/Dotfile/" "~/Projects/spring-boot-kalka-producer/src/main/resources/")
+("~/.emacs.d/" "~/IdeaProjects/learn-java/" "~/coding/" "~/coding/leetcode/phase-1/" "~/Desktop/Dotfile/")
