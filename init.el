@@ -321,6 +321,10 @@
   :config
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
+;; for running java in org mode
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((java . t)))
 
 ;; treemacs
 (use-package treemacs)
