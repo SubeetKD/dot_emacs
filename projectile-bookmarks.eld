@@ -1,1 +1,1 @@
-("~/coding/" "~/coding/org/" "~/.emacs.d/" "~/IdeaProjects/learn-java/" "~/coding/leetcode/phase-1/" "~/Desktop/Dotfile/")
+("~/.emacs.d/" "~/IdeaProjects/learn-java/" "~/coding/" "~/coding/leetcode/data-structures/")

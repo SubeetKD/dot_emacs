@@ -23,8 +23,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(helm-minibuffer-history-key "M-p")
+ '(org-agenda-files '("~/coding/org/todo.org"))
  '(package-selected-packages
-   '(yasnippet treemacs helm flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
+   '(general json-mode evil-collection evil tree-sitter-langs tree-sitter yasnippet treemacs helm flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -43,6 +45,9 @@
 
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
+
+(global-hl-line-mode 1)
+(set-face-attribute hl-line-face nil :underline nil)
 
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
   backup-by-copying t    ; Don't delink hardlinks
@@ -105,9 +110,16 @@
   :config
   (setq doom-themes-enable-bold t
 	doom-themes-enable-italic t)
-  (load-theme 'doom-one t)
+  (load-theme 'doom-gruvbox t)
   (doom-themes-visual-bell-config)
   (doom-themes-org-config))
+
+;; treesitter for themes
+(use-package tree-sitter
+  :config
+  (add-hook 'after-init-hook #'tree-sitter-mode)
+  (add-hook 'after-init-hook #'tree-sitter-hl-mode))
+(use-package tree-sitter-langs)
 
 ;; modeline
 (use-package doom-modeline
@@ -140,7 +152,6 @@
 (use-package swiper
   :diminish
   :after ivy)
-  
 
 (use-package ivy-rich
   :after ivy
@@ -160,65 +171,33 @@
 (use-package yasnippet
   :config
   (yas-global-mode 1))
- 
-;; company mode
-;; (use-package company
-;;   :diminish company-mode
-;;   :hook ((prog-mode) . company-mode)
-;;   :bind
-;;   (:map company-active-map
-;; 	("<return>" . nil)
-;; 	("<tab>" . smarter-tab-to-complete))
-;;   :init
-;;   (setq company-minimum-prefix-length 2
-;;         company-tooltip-limit 14
-;;         company-tooltip-align-annotations t
-;;         company-require-match 'never
-;;         company-global-modes
-;;         '(not erc-mode
-;;               message-mode
-;;               help-mode
-;;               gud-mode
-;;               vterm-mode)
-;;         company-frontends
-;;         '(company-pseudo-tooltip-frontend  ;; always show candidates in overlay tooltip
-;;           company-echo-metadata-frontend)  ;; show selected candidates docs in echo area
 
-;;         company-backends '(company-capf)
+;; evil mode
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-split-window-below t)
+  :config
+  (evil-mode 1))
 
-;;         company-auto-complete nil
-;;         company-auto-complete-chars nil
-     
-;;         company-idle-delay 0.1
-;;         ;; only search the current buffer for 'company-dabbrev'
-;;         ;; If lots of buffer then there is lag.
-;;         company-dabbrev-other-buffers nil
+;; additional evil keybindings for better navigation
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 
-;;         ;; make buffer completion fully case sensitive
-;;         company-dabbrev-ignore-case nil
-;;         company-dabbrev-downcase nil)
+;; TODO: complete this
+;; general.el for setting keybindings
+;; (use-package general
 ;;   :config
-;;   ;; (unless clangd-p (delete 'company-clang company-backends))
-;;   (global-company-mode 1)
-;;   (add-to-list 'company-backends '(company-capf))
-;;   (defun smarter-tab-to-complete ()
-;;     "Try to `org-cycle', `yas-expand', and `yas-next-field' at current cursor position.
+;;   (general-evil-setup t)
+;;   (general-create-definer my-leader-def :prefix "SPC")
 
-;; If all failed, try to complete the common part with `company-complete-common'"
-;;     (interactive)
-;;     (when yas-minor-mode
-;;       (let ((old-point (point))
-;;             (old-tick (buffer-chars-modified-tick))
-;;             (func-list
-;;              (if (equal major-mode 'org-mode) '(org-cycle yas-expand yas-next-field)
-;;                '(yas-expand yas-next-field))))
-;;         (catch 'func-suceed
-;;           (dolist (func func-list)
-;;             (ignore-errors (call-interactively func))
-;;             (unless (and (eq old-point (point))
-;;                          (eq old-tick (buffer-chars-modified-tick)))
-;;               (throw 'func-suceed t)))
-;;           (company-complete-common))))))
+;;   ;; SPC SPC
+;;   (my-leader-def :keymaps 'normal "SPC" 'helm-M-x))
+
 
 ;; company front-end
 ;; (use-package company-box
@@ -315,6 +294,18 @@
 ;; set up the terminal
 (use-package vterm)
 
+;; json mode
+(use-package json-mode)
+
+;; format json
+(defun beautify-json ()
+  (interactive)
+  (let ((b (if mark-active (min (point) (mark)) (point-min)))
+        (e (if mark-active (max (point) (mark)) (point-max))))
+    (shell-command-on-region b e
+                             "python -c 'import sys,json; data=json.loads(sys.stdin.read()); print json.dumps(data,sort_keys=True,indent=4).decode("unicode_escape").encode("utf8","replace")'" (current-buffer) t)))
+
+(define-key json-mode-map (kbd "C-c C-f") 'beautify-json)
 
 ;; better org-mode
 (use-package org-bullets
