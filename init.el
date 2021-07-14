@@ -24,7 +24,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(helm-minibuffer-history-key "M-p")
- '(org-agenda-files '("~/coding/org/todo.org"))
  '(package-selected-packages
    '(general json-mode evil-collection evil tree-sitter-langs tree-sitter yasnippet treemacs helm flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
 (custom-set-faces
@@ -46,8 +45,12 @@
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 
+;; set line number
 (global-hl-line-mode 1)
 (set-face-attribute hl-line-face nil :underline nil)
+
+;; set auto parens
+(electric-pair-mode t)
 
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
   backup-by-copying t    ; Don't delink hardlinks
@@ -63,8 +66,7 @@
 (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
 
 ;; font use
-
-(set-face-attribute 'default nil :font "Liberation Mono" :height 120)
+(set-face-attribute 'default nil :font "UbuntuMono Nerd Font" :height 150)
 
 (setq visible-bell 1)
 
@@ -105,12 +107,40 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
+;; evil mode
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-split-window-below t)
+  :config
+  (evil-mode 1))
+
+;; additional evil keybindings for better navigation
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+;; general.el for setting keybindings
+(use-package general)
+
+(defconst my-leader "SPC")
+
+(general-create-definer vim-leader-key
+    :keymaps '(normal visual insert emacs)
+    :prefix my-leader
+    :non-normal-prefix "C-SPC")
+
+;; check hydra for scaling keybinds
+
 ;; set theme
 (use-package doom-themes
   :config
   (setq doom-themes-enable-bold t
 	doom-themes-enable-italic t)
-  (load-theme 'doom-gruvbox t)
+  (load-theme 'doom-one t)
   (doom-themes-visual-bell-config)
   (doom-themes-org-config))
 
@@ -172,32 +202,6 @@
   :config
   (yas-global-mode 1))
 
-;; evil mode
-(use-package evil
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-vsplit-window-right t)
-  (setq evil-split-window-below t)
-  :config
-  (evil-mode 1))
-
-;; additional evil keybindings for better navigation
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
-
-;; TODO: complete this
-;; general.el for setting keybindings
-;; (use-package general
-;;   :config
-;;   (general-evil-setup t)
-;;   (general-create-definer my-leader-def :prefix "SPC")
-
-;;   ;; SPC SPC
-;;   (my-leader-def :keymaps 'normal "SPC" 'helm-M-x))
-
 
 ;; company front-end
 ;; (use-package company-box
@@ -245,6 +249,9 @@
   :config
   (add-hook 'prog-mode-hook (lambda () (global-flycheck-mode))))
 
+(add-to-list 'display-buffer-alist (cons (rx string-start (eval flycheck-error-list-buffer) string-end)
+                                    '(display-buffer-below-selected . ((window-height . shrink-window-if-larger-than-buffer)
+                                                                                  (reusable-frames . t)))))
   
 ;; if you are helm user
 (use-package helm)
@@ -307,6 +314,8 @@
 
 (define-key json-mode-map (kbd "C-c C-f") 'beautify-json)
 
+
+;; org mode configuration
 ;; better org-mode
 (use-package org-bullets
   :config
@@ -320,3 +329,44 @@
 ;; treemacs
 (use-package treemacs)
 (use-package treemacs-projectile)
+
+;; basic bindings
+(vim-leader-key
+
+  ;; toggle
+  "t" '(:ignore t :which-key "Toggles")
+  "tt" '(counsel-load-theme :which-key "Theme")
+
+  ;; window keybinds
+  "w" '(:ignore t :which-key "Window")
+  "wk" '(:ignore t :which-key "Kill Window")
+  ;; "wkk" '(kill-buffer-and-window :which-key "Kill current window")
+
+  ;; Buffer Keybindings
+  "b" '(:ignore t :which-key "Buffers")
+
+  "bb" '(counsel-switch-buffer :which-key "Buffers")
+
+  ;; kill buffer
+  "bk" '(:ignore t :which-key "Kill Buffer")
+  "bkk" '(kill-current-buffer :which-key "Current")
+  "bkb" '(kill-buffer :which-key "Other")
+
+  ;; File related stuff
+  "f" '(:ignore t :which-key "Files")
+  "ff" '(counsel-find-file :which-key "Find files")
+
+  ;; Project Commands
+  "p" '(:ignore t :which-key "Project")
+  "pp" '(counsel-projectile-switch-project :which-key "Switch Project")
+  "pf" '(counsel-projectile-find-file :which-key "Find File")
+  ;; "pg" (counsel-projectile-rg :which-key "Search String")
+
+  ;; Git commands
+  "g" '(:ignore t :which-key "Git")
+  "gs" '(magit-status :which-key "Status")
+
+  ;; LSP Keybindings (WIP)
+  "l" '(:ignore t :which-key "LSP")
+  "lc" '(:ignore t :which-key "Code")
+  "lca" '(helm-lsp-code-actions :which-key "Code Actions"))
