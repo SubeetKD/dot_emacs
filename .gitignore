@@ -9,3 +9,5 @@ eshell/
 /transient/
 /recentf
 /backup/*.org#
+/backup/
+/config.el

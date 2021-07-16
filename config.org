@@ -1,0 +1,291 @@
+#+TITLE: My Emacs Config
+#+AUTHOR: Subeet Kumar Dutta
+
+* Setup package.el
+  Add repos to the archive and install use-package for installing packages
+  #+begin_src emacs-lisp
+    (require 'package)
+
+    (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                 ("org" . "https://orgmode.org/elpa/")
+                 ("elpa" . "https://elpa.gnu.org/packages/")))
+    (add-to-list 'package-archives
+                 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
+    (package-initialize)
+    (unless package-archive-contents
+      (package-refresh-contents))
+
+    ;; install use-package
+    (unless (package-installed-p 'use-package)
+      (package-install 'use-package))
+
+    (require 'use-package)
+
+    (setq use-package-always-ensure t)
+
+  #+end_src
+
+* UI Setup
+** Don't display stuff
+    Don't display startup message, turn off scroll bar, tool bar and menu bar. Show visual bell.
+    #+begin_src emacs-lisp
+      (setq inhibit-startup-message t)
+
+      (scroll-bar-mode -1)
+      (tool-bar-mode -1)
+      (tooltip-mode -1)
+
+      (menu-bar-mode -1)
+
+      (setq visible-bell 1)
+    #+end_src
+** Tab Setting
+   Set default tab to 4 for any buffer.
+   #+begin_src emacs-lisp
+     (setq-default indent-tabs-mode nil)
+     (setq-default tab-width 4)
+   #+end_src
+** Show line number and column line
+   Show line number and highlight current line.
+   #+begin_src emacs-lisp
+     (global-hl-line-mode 1)
+     (set-face-attribute hl-line-face nil :underline nil)
+
+     (column-number-mode)
+     (global-display-line-numbers-mode t)
+
+     ;; disable for some mode
+     (dolist (mode '(org-mode-hook
+                     term-mode-hook
+                     vterm-mode-hook
+                     eshell-mode-hook))
+       (add-hook mode (lambda () (display-line-numbers-mode 0))))
+   #+end_src
+** Set auto parens
+   Set auto parens, currently using electric one (default).
+   #+begin_src emacs-lisp
+     (electric-pair-mode t)
+   #+end_src
+** Setup backup options.
+   set good backup options
+   #+begin_src emacs-lisp
+     (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+       backup-by-copying t    ; Don't delink hardlinks
+       version-control t      ; Use version numbers on backups
+       delete-old-versions t  ; Automatically delete excess backups
+       kept-new-versions 20   ; how many of the newest versions to keep
+       kept-old-versions 5    ; and how many of the old
+       )
+
+     (setq auto-save-file-name-transforms
+       `((".*" "~/.emacs.d/backup/" t)))
+
+     (setq backup-directory-alist '(("." . "~/MyEmacsBackups")))
+   #+end_src
+** Set Font
+   Currently using ubuntu mono font as my primary.
+   #+begin_src emacs-lisp
+     (set-face-attribute 'default nil :font "UbuntuMono Nerd Font" :height 150)
+   #+end_src
+* Which key Setup
+  Use which-key, very helpful for finding keybindings
+  #+begin_src emacs-lisp
+    (use-package which-key
+      :init (which-key-mode)
+      :diminish which-key-mode
+      :config
+      (setq which-key-idle-delay 0.3))
+  #+end_src
+* Better Help
+  Show better help in better way.
+  #+begin_src emacs-lisp
+    ;; better help
+    (use-package helpful
+      :custom
+      (counsel-describe-function-function #'helpful-callable)
+      (counsel-describe-variable-function #'helpful-variable)
+      :bind
+      ([remap describe-function] . counsel-describe-function)
+      ([remap describe-command] . helpful-command)
+      ([remap describe-variable] . counsel-describe-variable)
+      ([remap describe-key] . helpful-key))
+  #+end_src
+* Evil Mode Setup
+  Use evil mode (best mode for editing file).
+  #+begin_src emacs-lisp
+    ;; evil mode
+    (use-package evil
+      :init
+      (setq evil-want-integration t)
+      (setq evil-want-keybinding nil)
+      (setq evil-vsplit-window-right t)
+      (setq evil-split-window-below t)
+      :config
+      (evil-mode 1))
+
+    ;; additional evil keybindings for better navigation
+    (use-package evil-collection
+      :after evil
+      :config
+      (evil-collection-init))
+
+    ;; for org mode
+    (use-package evil-org
+      :after org
+      :hook (org-mode . (lambda () evil-org-mode))
+      :config
+      (require 'evil-org-agenda)
+      (evil-org-agenda-set-keys))
+
+    ;; for leader key in all mode
+    ;; (evil-set-leader '(normal visual emacs insert) (kbd "C-SPC"))
+
+    ;; for leader in normal and visual
+    ;; (evil-set-leader '(normal visual) (kbd "SPC"))
+
+    (define-key evil-normal-state-map (kbd "C-SPC") nil)
+
+    ;; TODO check evil-magit
+  #+end_src
+* Key bindings
+  Using general for setting keybindings.
+  #+begin_src emacs-lisp
+    ;; general.el for setting keybindings
+    (use-package general)
+
+    (evil-define-key 'normal 'global (kbd "C-SPC") nil)
+    (general-evil-setup)
+    (general-nmap
+        "\C-SPC" nil)
+
+    (defconst my-leader "SPC")
+
+    (general-create-definer vim-leader-key
+        :keymaps '(normal visual insert emacs)
+        :prefix my-leader
+        :non-normal-prefix "C-SPC")
+
+    ;; check hydra for scaling keybinds
+  #+end_src
+* Visuals
+** Themes
+  Using doom-themes for setting theme
+  #+begin_src emacs-lisp
+    ;; set theme
+    (use-package doom-themes
+      :config
+      (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+      ;; (load-theme 'doom-one t)
+      (doom-themes-visual-bell-config)
+      (doom-themes-org-config))
+  #+end_src
+** Tree sitter
+   Using treesitter for syntax highlighting.
+   #+begin_src emacs-lisp
+     (use-package tree-sitter
+       :config
+       (add-hook 'after-init-hook #'tree-sitter-mode)
+       (add-hook 'after-init-hook #'tree-sitter-hl-mode))
+     (use-package tree-sitter-langs)
+   #+end_src
+** Modeline
+   Using doom-modeline for modeline.
+   #+begin_src emacs-lisp
+     ;; modeline
+     (use-package doom-modeline
+       :init (doom-modeline-mode 1)
+       :custom
+       (setq doom-modeline-height 15))
+   #+end_src
+** Icons
+   Install icons
+   #+begin_src emacs-lisp
+     (use-package all-the-icons)
+   #+end_src
+** Helper Utility
+   Rainbow delimiters for helping with parens.
+   #+begin_src emacs-lisp
+     (use-package rainbow-delimiters
+       :hook (prog-mode . rainbow-delimiters-mode))
+   #+end_src
+* Completion
+** Using company for completion
+  #+begin_src emacs-lisp
+    (use-package company
+      :hook ((prog-mode) . company-mode)
+      :init
+      (setq company-minimum-prefix-length 1
+            ;; company-backends '(company-capf)
+            company-idle-delay 0))
+  #+end_src
+** For some other mode
+   Enable company mode for org mode.
+   #+begin_src emacs-lisp
+     (add-hook 'org-mode-hook #'company-mode)
+   #+end_src
+* Org mode
+** Org-bullets
+   Use org bullets for nice bullets
+   #+begin_src emacs-lisp
+     (use-package org-bullets
+       :config
+       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+   #+end_src
+** Java support
+   For running java in code block
+   #+begin_src emacs-lisp
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((java . t)))
+   #+end_src
+* Keybindings
+  Set all the keybindings here.
+  #+begin_src emacs-lisp
+    (vim-leader-key
+
+      ;; toggle
+      "t" '(:ignore t :which-key "Toggles")
+      "tt" '(counsel-load-theme :which-key "Theme")
+      "tc" '(comment-line :which-key "comment line")
+
+      "tr" '(:ignore t :which-key "Toggle for region")
+      "trc" '(comment-or-uncomment-region :which-key "comment Region")
+
+
+      ;; window keybinds
+      "w" '(:ignore t :which-key "Window")
+      "wk" '(:ignore t :which-key "Kill Window")
+      ;; "wkk" '(kill-buffer-and-window :which-key "Kill current window")
+
+      ;; Buffer Keybindings
+      "b" '(:ignore t :which-key "Buffers")
+
+      "bb" '(counsel-switch-buffer :which-key "Buffers")
+
+      ;; kill buffer
+      "bk" '(:ignore t :which-key "Kill Buffer")
+      "bkk" '(kill-current-buffer :which-key "Current")
+      "bkb" '(kill-buffer :which-key "Other")
+
+      ;; File related stuff
+      "f" '(:ignore t :which-key "Files")
+      "ff" '(counsel-find-file :which-key "Find files")
+
+      ;; Project Commands
+      "p" '(:ignore t :which-key "Project")
+      "pp" '(counsel-projectile-switch-project :which-key "Switch Project")
+      "pf" '(counsel-projectile-find-file :which-key "Find File")
+      ;; "pg" (counsel-projectile-rg :which-key "Search String")
+
+      ;; Git commands
+      "g" '(:ignore t :which-key "Git")
+      "gs" '(magit-status :which-key "Status")
+
+      ;; LSP Keybindings (WIP)
+      "l" '(:ignore t :which-key "LSP")
+      "lc" '(:ignore t :which-key "Code")
+      "lca" '(helm-lsp-code-actions :which-key "Code Actions"))
+  #+end_src
+
