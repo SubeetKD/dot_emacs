@@ -1,1 +1,1 @@
-("~/.emacs.d/" "~/IdeaProjects/learn-java/" "~/coding/" "~/coding/leetcode/data-structures/")
+("~/coding/" "~/IdeaProjects/leetcode/" "~/IdeaProjects/learn-java/" "~/IdeaProjects/data-structures/" "~/.emacs.d/" "~/personel/data-strutures-and-algorithms/" "~/testing/first/app/" "~/testing/first/" "~/testing/" "~/Desktop/leetcode/app/" "~/Desktop/leetcode/" "~/coding/leetcode/data-structures/")

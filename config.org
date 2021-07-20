@@ -168,19 +168,54 @@
 
     ;; check hydra for scaling keybinds
   #+end_src
+* Ivy, counsel and swiper
+  Tool for minibuffer completion in emacs.
+** Ivy
+   A generic completion mechanism for emacs
+   #+begin_src emacs-lisp
+     (use-package ivy
+       :diminish ivy
+       :config
+       (ivy-mode)
+       (setq ivy-use-virtual-buffers t)
+       (setq enable-recursive-minibuffers t)
+       (global-set-key (kbd "C-s") 'swiper)
+       (global-set-key (kbd "M-x") 'counsel-M-x)
+       (global-set-key (kbd "C-x C-f") 'counsel-find-file))
+
+     ;; for better visual for ivy
+     (use-package ivy-rich
+       :after ivy
+       :init
+       (ivy-rich-mode 1)
+       (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
+   #+end_src
+** Counsel
+   Bunch of emacs's function implemented using ivy.
+   #+begin_src emacs-lisp
+     (use-package counsel
+         :diminish
+         :after ivy)
+   #+end_src
+** Swiper
+   Ivy implementation of isearch
+   #+begin_src emacs-lisp
+     (use-package swiper
+       :after ivy)
+   #+end_src
 * Visuals
 ** Themes
   Using doom-themes for setting theme
   #+begin_src emacs-lisp
-    ;; set theme
     (use-package doom-themes
       :config
       (setq doom-themes-enable-bold t
         doom-themes-enable-italic t)
-      ;; (load-theme 'doom-one t)
-      (doom-themes-visual-bell-config)
+      (load-theme 'doom-one t)
+      ;; (doom-themes-visual-bell-config)
       (doom-themes-org-config))
   #+end_src
+
 ** Tree sitter
    Using treesitter for syntax highlighting.
    #+begin_src emacs-lisp
@@ -226,6 +261,10 @@
      (add-hook 'org-mode-hook #'company-mode)
    #+end_src
 * Org mode
+** Some Visual Improvements
+   #+begin_src emacs-lisp
+     (setq org-ellipsis "⤵")
+   #+end_src
 ** Org-bullets
    Use org bullets for nice bullets
    #+begin_src emacs-lisp
@@ -239,6 +278,44 @@
      (org-babel-do-load-languages
       'org-babel-load-languages
       '((java . t)))
+   #+end_src
+* LSP
+  Language server support.
+** Base package
+   Install lsp mode
+   #+begin_src emacs-lisp
+     (use-package lsp-mode
+       :bind
+       (:map lsp-mode-map
+         ("M-RET" . lsp-execute-code-action))
+       :config
+       (lsp-enable-which-key-integration t)
+
+       ;; turn off the autoformatting
+       (setq lsp-enable-on-type-formatting 1)
+
+       ;; setting the default completion provider for lsp
+       (setq lsp-completion-provider :capf)
+
+       ;; performance tweaks
+       (setq gc-cons-threshold 1000000000)
+       (setq read-process-output-max (* 1024 1024))
+       (setq lsp-idle-delay 0.500))
+
+   #+end_src
+** LSP-UI
+   Enhance the default user interface
+   #+begin_src emacs-lisp
+     (use-package lsp-ui
+       :commands lsp-ui-mode
+       :config
+       ;; (setq lsp-ui-doc-enable t)
+       ;; (setq lsp-ui-doc-show-with-cursor nil)
+       ;; (setq lsp-ui-doc-show-with-mouse nil)
+
+       (setq lsp-ui-imenu-enable t)
+
+       (setq lsp-lens-enable t))
    #+end_src
 * Keybindings
   Set all the keybindings here.

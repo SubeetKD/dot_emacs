@@ -10,7 +10,7 @@
  ;; If there is more than one, they won't work right.
  '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
-   '(general json-mode evil-collection evil tree-sitter-langs tree-sitter yasnippet treemacs helm flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
+   '(moe-theme general json-mode evil-collection evil tree-sitter-langs tree-sitter yasnippet treemacs helm flycheck treemacs-projectile org-bullets vterm-toggle company-box company-lsp java-lsp lsp-java lsp-treemacs lsp-ivy helm-lsp lsp-ui lsp-mode magit counsel-projectile projectile doom-themes helpful which-key rainbow-delimiters doom-modeline company ivy-rich vterm counsel ivy use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -22,31 +22,6 @@
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-(use-package ivy
-  :diminish ivy
-  :config
-  (ivy-mode)
-  (setq ivy-use-virtual-buffers t)
-  (global-set-key (kbd "C-s") 'swiper)
-  (global-set-key (kbd "M-x") 'counsel-M-x)
-  (global-set-key (kbd "C-x C-f") 'counsel-find-file))
-
-(use-package counsel
-  :diminish
-  :after ivy
-  :config
-  (global-unset-key (kbd "C-l"))
-  (global-set-key (kbd "C-l f") 'counsel-fzf))
-
-(use-package swiper
-  :diminish
-  :after ivy)
-
-(use-package ivy-rich
-  :after ivy
-  :init
-  (ivy-rich-mode 1)
-  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
 
 ;; yas mode
 (use-package yasnippet
@@ -78,18 +53,6 @@
   :config
   (global-set-key (kbd "C-c g") 'magit))
 
-
-;; lsp mode
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :config
-  (setq lsp-ui-doc-enable t)
-  (setq lsp-ui-doc-show-with-cursor nil)
-  (setq lsp-ui-doc-show-with-mouse nil)
-
-  (setq lsp-lens-enable t))
-
-
 ;; syntax checking
 (use-package flycheck
   :config
@@ -108,28 +71,6 @@
   :commands lsp-treemacs-errors-list
   :config
   (lsp-treemacs-sync-mode 1))
-
-;; java lsp
-(use-package lsp-mode
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  :bind
-  (:map lsp-mode-map
-	("M-RET" . lsp-execute-code-action))
-  :config
-  (lsp-enable-which-key-integration t)
-
-  ;; turn off the autoformatting
-  (setq lsp-enable-on-type-formatting 0)
-
-  ;; setting the default completion provider for lsp
-  (setq lsp-completion-provider :capf)
-
-  ;; performance tweaks
-  (setq gc-cons-threshold 1000000000)
-  (setq read-process-output-max (* 1024 1024))
-  (setq lsp-idle-delay 0.500))
-
 
 ;; set lsp-java
 (use-package lsp-java
