@@ -1,16 +1,16 @@
-#+TITLE: My Emacs Config
+#+TITLE: My Emacs config
 #+AUTHOR: Subeet Kumar Dutta
 
 * Setup package.el
-  Add repos to the archive and install use-package for installing packages
+  Add the repos and install use-package
   #+begin_src emacs-lisp
     (require 'package)
 
     (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                 ("org" . "https://orgmode.org/elpa/")
-                 ("elpa" . "https://elpa.gnu.org/packages/")))
+		 ("org" . "https://orgmode.org/elpa/")
+		 ("elpa" . "https://elpa.gnu.org/packages/")))
     (add-to-list 'package-archives
-                 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
     (package-initialize)
     (unless package-archive-contents
@@ -23,52 +23,140 @@
     (require 'use-package)
 
     (setq use-package-always-ensure t)
-
   #+end_src
+* LSP
+** Company mode
+   #+begin_src emacs-lisp
+     (use-package company
+       :hook ((prog-mode) . company-mode)
+       :init
+       (setq company-minimun-prefix 3
+	     company-idle-delay 0))
 
-* UI Setup
-** Don't display stuff
-    Don't display startup message, turn off scroll bar, tool bar and menu bar. Show visual bell.
+     ;; for other modes
+     (add-hook 'org-mode-hook #'company-mode)
+   #+end_src
+** LSP base
+   very basic setup for lsp
+   #+begin_src emacs-lisp
+     (use-package lsp-mode
+       :bind
+       (:map lsp-mode-map
+	 ("M-RET" . lsp-execute-code-action))
+       :config
+       (lsp-enable-which-key-integration t)
+
+       ;; turn off the autoformatting
+       (setq lsp-enable-on-type-formatting 1)
+
+       ;; setting the default completion provider for lsp
+       (setq lsp-completion-provider :capf)
+
+       ;; performance tweaks
+       (setq gc-cons-threshold 1000000000)
+       (setq read-process-output-max (* 1024 1024))
+       (setq lsp-idle-delay 0.500))
+   #+end_src
+** Language specific.
+   Some language specific configuration.
+*** Java
+    Set up lsp for java (in my home setup will be using the java 11 but in the work will use java 8)
     #+begin_src emacs-lisp
-      (setq inhibit-startup-message t)
+      ;; setup jdt
+      (use-package lsp-java
+	:init
+	(setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
+	:config
+	(add-hook 'java-mode-hook #'lsp))
 
-      (scroll-bar-mode -1)
-      (tool-bar-mode -1)
-      (tooltip-mode -1)
-
-      (menu-bar-mode -1)
-
-      (setq visible-bell 1)
+      ;; for code action (have to use helm i think)
     #+end_src
-** Tab Setting
-   Set default tab to 4 for any buffer.
-   #+begin_src emacs-lisp
-     (setq-default indent-tabs-mode nil)
-     (setq-default tab-width 4)
-   #+end_src
-** Show line number and column line
-   Show line number and highlight current line.
-   #+begin_src emacs-lisp
-     (global-hl-line-mode 1)
-     (set-face-attribute hl-line-face nil :underline nil)
 
-     (column-number-mode)
-     (global-display-line-numbers-mode t)
-
-     ;; disable for some mode
-     (dolist (mode '(org-mode-hook
-                     term-mode-hook
-                     vterm-mode-hook
-                     eshell-mode-hook))
-       (add-hook mode (lambda () (display-line-numbers-mode 0))))
-   #+end_src
-** Set auto parens
-   Set auto parens, currently using electric one (default).
+* Snippets
+  using yasnippet for snippet functionality
+  #+begin_src emacs-lisp
+    (use-package yasnippet
+      :config
+      (yas-global-mode 1))
+  #+end_src
+* ORG
+  some improvements for org mode experience
+** Viusals
+   Use org-bullets and change the last three dots.
    #+begin_src emacs-lisp
-     (electric-pair-mode t)
+     (setq org-ellipsis "⤵")
+
+     (use-package org-bullets
+       :config
+       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
    #+end_src
-** Setup backup options.
-   set good backup options
+** For other language support
+   for java support in the code block
+   #+begin_src emacs-lisp
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((java . t)))
+   #+end_src
+* Evil mode
+  Best mode known to man
+** Base
+   Base setup for the evil mode
+   #+begin_src emacs-lisp
+     ;; evil mode
+     (use-package evil
+       :init
+       (setq evil-want-integration t)
+       (setq evil-want-keybinding nil)
+       (setq evil-vsplit-window-right t)
+       (setq evil-split-window-below t)
+       :config
+       (evil-mode 1))
+   #+end_src
+** additional key bindings
+   some additional key bindings for evil mode
+   #+begin_src emacs-lisp
+     ;; additional evil keybindings for better navigation
+     (use-package evil-collection
+       :after evil
+       :config
+       (evil-collection-init))
+
+     ;; for org mode
+     (use-package evil-org
+       :after org
+       :hook (org-mode . (lambda () evil-org-mode))
+       :config
+       (require 'evil-org-agenda)
+       (evil-org-agenda-set-keys))
+   #+end_src
+** Better key mappings
+   Better way to map the keys
+   #+begin_src emacs-lisp
+     (use-package general)
+
+     ;; set global leader
+     (defconst my-leader "SPC")
+
+     (general-create-definer vim-leader-key
+			     :keymaps '(normal visual insert emacs)
+			     :prefix my-leader
+			     :non-normal-prefix "C-SPC")
+   #+end_src
+* Visuals
+  Some visual improvements
+** Turn off useless mode
+   #+begin_src emacs-lisp
+     (setq inhibit-startup-message t)
+
+     (scroll-bar-mode -1)
+     (tool-bar-mode -1)
+     (tooltip-mode -1)
+
+     (menu-bar-mode -1)
+
+     (setq visible-bell 1)
+   #+end_src
+** Setup backup config
    #+begin_src emacs-lisp
      (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
        backup-by-copying t    ; Don't delink hardlinks
@@ -83,262 +171,59 @@
 
      (setq backup-directory-alist '(("." . "~/MyEmacsBackups")))
    #+end_src
-** Set Font
-   Currently using ubuntu mono font as my primary.
+** Font
+   set font
    #+begin_src emacs-lisp
-     (set-face-attribute 'default nil :font "UbuntuMono Nerd Font" :height 150)
+     (set-face-attribute 'default nil :font "FiraCode Nerd Font Mono" :height 140)
    #+end_src
-* Which key Setup
-  Use which-key, very helpful for finding keybindings
-  #+begin_src emacs-lisp
-    (use-package which-key
-      :init (which-key-mode)
-      :diminish which-key-mode
-      :config
-      (setq which-key-idle-delay 0.3))
-  #+end_src
-* Better Help
-  Show better help in better way.
-  #+begin_src emacs-lisp
-    ;; better help
-    (use-package helpful
-      :custom
-      (counsel-describe-function-function #'helpful-callable)
-      (counsel-describe-variable-function #'helpful-variable)
-      :bind
-      ([remap describe-function] . counsel-describe-function)
-      ([remap describe-command] . helpful-command)
-      ([remap describe-variable] . counsel-describe-variable)
-      ([remap describe-key] . helpful-key))
-  #+end_src
-* Evil Mode Setup
-  Use evil mode (best mode for editing file).
-  #+begin_src emacs-lisp
-    ;; evil mode
-    (use-package evil
-      :init
-      (setq evil-want-integration t)
-      (setq evil-want-keybinding nil)
-      (setq evil-vsplit-window-right t)
-      (setq evil-split-window-below t)
-      :config
-      (evil-mode 1))
 
-    ;; additional evil keybindings for better navigation
-    (use-package evil-collection
-      :after evil
-      :config
-      (evil-collection-init))
+   #+RESULTS:
 
-    ;; for org mode
-    (use-package evil-org
-      :after org
-      :hook (org-mode . (lambda () evil-org-mode))
-      :config
-      (require 'evil-org-agenda)
-      (evil-org-agenda-set-keys))
-
-    ;; for leader key in all mode
-    ;; (evil-set-leader '(normal visual emacs insert) (kbd "C-SPC"))
-
-    ;; for leader in normal and visual
-    ;; (evil-set-leader '(normal visual) (kbd "SPC"))
-
-    (define-key evil-normal-state-map (kbd "C-SPC") nil)
-
-    ;; TODO check evil-magit
-  #+end_src
-* Key bindings
-  Using general for setting keybindings.
-  #+begin_src emacs-lisp
-    ;; general.el for setting keybindings
-    (use-package general)
-
-    (evil-define-key 'normal 'global (kbd "C-SPC") nil)
-    (general-evil-setup)
-    (general-nmap
-        "\C-SPC" nil)
-
-    (defconst my-leader "SPC")
-
-    (general-create-definer vim-leader-key
-        :keymaps '(normal visual insert emacs)
-        :prefix my-leader
-        :non-normal-prefix "C-SPC")
-
-    ;; check hydra for scaling keybinds
-  #+end_src
-* Ivy, counsel and swiper
-  Tool for minibuffer completion in emacs.
-** Ivy
-   A generic completion mechanism for emacs
+** Which key
+   Show keybindings
    #+begin_src emacs-lisp
-     (use-package ivy
-       :diminish ivy
+     (use-package which-key
+       :init (which-key-mode)
+       :diminish which-key-mode
        :config
-       (ivy-mode)
-       (setq ivy-use-virtual-buffers t)
-       (setq enable-recursive-minibuffers t)
-       (global-set-key (kbd "C-s") 'swiper)
-       (global-set-key (kbd "M-x") 'counsel-M-x)
-       (global-set-key (kbd "C-x C-f") 'counsel-find-file))
-
-     ;; for better visual for ivy
-     (use-package ivy-rich
-       :after ivy
-       :init
-       (ivy-rich-mode 1)
-       (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
-   #+end_src
-** Counsel
-   Bunch of emacs's function implemented using ivy.
-   #+begin_src emacs-lisp
-     (use-package counsel
-         :diminish
-         :after ivy)
-   #+end_src
-** Swiper
-   Ivy implementation of isearch
-   #+begin_src emacs-lisp
-     (use-package swiper
-       :after ivy)
-   #+end_src
-* Visuals
-** Themes
-  Using doom-themes for setting theme
-  #+begin_src emacs-lisp
-    (use-package doom-themes
-      :config
-      (setq doom-themes-enable-bold t
-        doom-themes-enable-italic t)
-      (load-theme 'doom-one t)
-      ;; (doom-themes-visual-bell-config)
-      (doom-themes-org-config))
-  #+end_src
-
-** Tree sitter
-   Using treesitter for syntax highlighting.
-   #+begin_src emacs-lisp
-     (use-package tree-sitter
-       :config
-       (add-hook 'after-init-hook #'tree-sitter-mode)
-       (add-hook 'after-init-hook #'tree-sitter-hl-mode))
-     (use-package tree-sitter-langs)
-   #+end_src
-** Modeline
-   Using doom-modeline for modeline.
-   #+begin_src emacs-lisp
-     ;; modeline
-     (use-package doom-modeline
-       :init (doom-modeline-mode 1)
-       :custom
-       (setq doom-modeline-height 15))
+       (setq which-key-idle-delay 0.3))
    #+end_src
 ** Icons
-   Install icons
+   Using all-the-icons
    #+begin_src emacs-lisp
      (use-package all-the-icons)
    #+end_src
-** Helper Utility
-   Rainbow delimiters for helping with parens.
+** Themes
+   Using doom themes
    #+begin_src emacs-lisp
-     (use-package rainbow-delimiters
-       :hook (prog-mode . rainbow-delimiters-mode))
-   #+end_src
-* Completion
-** Using company for completion
-  #+begin_src emacs-lisp
-    (use-package company
-      :hook ((prog-mode) . company-mode)
-      :init
-      (setq company-minimum-prefix-length 1
-            ;; company-backends '(company-capf)
-            company-idle-delay 0))
-  #+end_src
-** For some other mode
-   Enable company mode for org mode.
-   #+begin_src emacs-lisp
-     (add-hook 'org-mode-hook #'company-mode)
-   #+end_src
-* Org mode
-** Some Visual Improvements
-   #+begin_src emacs-lisp
-     (setq org-ellipsis "⤵")
-   #+end_src
-** Org-bullets
-   Use org bullets for nice bullets
-   #+begin_src emacs-lisp
-     (use-package org-bullets
+     (use-package doom-themes
        :config
-       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+       (setq doom-themes-enable-bold t
+	     doom-themes-enable-italic t)
+       (load-theme 'doom-one t)
+
+       ;; Enable flashy visual alert
+       (doom-themes-visual-bell-config)
+       (doom-themes-org-config))
+
+
+     ;; for modeline
+     (use-package doom-modeline
+       :init
+       (doom-modeline-mode 1))
    #+end_src
-** Java support
-   For running java in code block
+** File Tree
+   Using emacs neotree
    #+begin_src emacs-lisp
-     (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((java . t)))
-   #+end_src
-* LSP
-  Language server support.
-** Base package
-   Install lsp mode
-   #+begin_src emacs-lisp
-     (use-package lsp-mode
-       :bind
-       (:map lsp-mode-map
-         ("M-RET" . lsp-execute-code-action))
+     (use-package neotree
        :config
-       (lsp-enable-which-key-integration t)
-
-       ;; turn off the autoformatting
-       (setq lsp-enable-on-type-formatting 1)
-
-       ;; setting the default completion provider for lsp
-       (setq lsp-completion-provider :capf)
-
-       ;; performance tweaks
-       (setq gc-cons-threshold 1000000000)
-       (setq read-process-output-max (* 1024 1024))
-       (setq lsp-idle-delay 0.500))
-
+       ;; for doom themes
+       (doom-themes-neotree-config))
    #+end_src
-** LSP-UI
-   Enhance the default user interface
-   #+begin_src emacs-lisp
-     (use-package lsp-ui
-       :commands lsp-ui-mode
-       :config
-       ;; (setq lsp-ui-doc-enable t)
-       ;; (setq lsp-ui-doc-show-with-cursor nil)
-       ;; (setq lsp-ui-doc-show-with-mouse nil)
-
-       (setq lsp-ui-imenu-enable t)
-
-       (setq lsp-lens-enable t))
-   #+end_src
-** DAP mode
-   #+begin_src emacs-lisp
-     (dap-mode 1)
-
-     ;; The modes below are optional
-
-     (dap-ui-mode 1)
-     ;; enables mouse hover support
-     (dap-tooltip-mode 1)
-     ;; use tooltips for mouse hover
-     ;; if it is not enabled `dap-mode' will use the minibuffer.
-     (tooltip-mode 1)
-     ;; displays floating panel with debug buttons
-     ;; requies emacs 26+
-     (dap-ui-controls-mode 1)
-
-
-     ;; language specific configuration
-     (use-package dap-java)
-   #+end_src
+** Line Number and cursor line
+   Enable global line number and cursor line for satisfaction nothing else.
 * Keybindings
-  Set all the keybindings here.
+  some keybindings
   #+begin_src emacs-lisp
     (vim-leader-key
 
@@ -349,6 +234,9 @@
 
       "tr" '(:ignore t :which-key "Toggle for region")
       "trc" '(comment-or-uncomment-region :which-key "comment Region")
+
+      "tf" '(:ignore t :which-key "Toggle for neotree")
+      "tff" '(neotree-toggle :which-key "Toggle neotree")
 
 
       ;; window keybinds
@@ -383,6 +271,62 @@
       ;; LSP Keybindings (WIP)
       "l" '(:ignore t :which-key "LSP")
       "lc" '(:ignore t :which-key "Code")
-      "lca" '(helm-lsp-code-actions :which-key "Code Actions"))
+      "lca" '(helm-lsp-code-actions :which-key "Code Actions")
+      "lff" '(lsp-format-buffer :which-key "Format file"))
   #+end_src
+* Searcher
+  File searcher, search in buffer and other implementation
+** Ivy, swiper and counsel
+   #+begin_src emacs-lisp
+     (use-package ivy
+       :diminish ivy
+       :config
+       (ivy-mode)
+       (setq ivy-use-virtual-buffers t)
+       (setq enable-recursive-minibuffers t)
+       (global-set-key (kbd "C-s") 'swiper)
+       (global-set-key (kbd "M-x") 'counsel-M-x)
+       (global-set-key (kbd "C-x C-f") 'counsel-find-file))
+
+     ;; for better visual for ivy
+     (use-package ivy-rich
+       :after ivy
+       :init
+       (ivy-rich-mode 1)
+       (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line))
+
+     (use-package counsel
+	 :diminish
+	 :after ivy)
+
+     (use-package swiper
+       :after ivy)
+   #+end_src
+** Project
+   Using projectile for the same in the projects
+   #+begin_src emacs-lisp
+     ;; projectile configuration
+     (use-package projectile
+       :diminish projectile-mode
+       :config (projectile-mode)
+       :custom (projectile-completion-system 'ivy)
+       :bind-keymap
+       ("C-c p" . projectile-command-map)
+       :init
+       (when (file-directory-p "~/IdeaProjects")
+	 (setq projectile-project-search-path '("~/IdeaProjects")))
+       (setq projectile-switch-project-action #'projectile-dired))
+
+     ;; better integration between counsel and projectile
+     (use-package counsel-projectile
+       :config (counsel-projectile-mode))
+   #+end_src
+* DAP mode
+  Debugging adapter protocal
+  TODO: have to add keymapings for it.
+** Basic configuration
+   #+begin_src emacs-lisp
+     ;; enabling some of the featurues
+     (setq dap-auto-configure-features '(sessions locals controls tooltip))
+   #+end_src
 
