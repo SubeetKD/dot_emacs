@@ -1,1 +1,1 @@
-("~/IdeaProjects/data-structures/" "~/.emacs.d/")
+("~/IdeaProjects/data-structures/" "~/coding/" "~/.emacs.d/")
