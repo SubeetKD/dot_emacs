@@ -1,6 +1,9 @@
 #+TITLE: My Emacs config
 #+AUTHOR: Subeet Kumar Dutta
 
+* Goal
+  The current goal is to have a complete setup of emacs that works with the java development.
+
 * Setup package.el
   Add the repos and install use-package
   #+begin_src emacs-lisp
@@ -24,97 +27,6 @@
 
     (setq use-package-always-ensure t)
   #+end_src
-* LSP
-** Company mode
-   #+begin_src emacs-lisp
-     (use-package company
-       :hook ((prog-mode) . company-mode)
-       :init
-       (setq company-minimun-prefix 3
-	     company-idle-delay 0))
-
-     ;; for other modes
-     (add-hook 'org-mode-hook #'company-mode)
-   #+end_src
-** LSP base
-   very basic setup for lsp
-   #+begin_src emacs-lisp
-     (use-package lsp-mode
-       :bind
-       (:map lsp-mode-map
-	 ("M-RET" . lsp-execute-code-action))
-       :config
-       (lsp-enable-which-key-integration t)
-
-       ;; turn off the autoformatting
-       (setq lsp-enable-on-type-formatting 1)
-
-       ;; setting the default completion provider for lsp
-       (setq lsp-completion-provider :capf)
-
-       ;; performance tweaks
-       (setq gc-cons-threshold 1000000000)
-       (setq read-process-output-max (* 1024 1024))
-       (setq lsp-idle-delay 0.500))
-   #+end_src
-** Language specific.
-   Some language specific configuration.
-*** Java
-    Set up lsp for java (in my home setup will be using the java 11 but in the work will use java 8)
-    #+begin_src emacs-lisp
-      ;; setup jdt
-      (use-package lsp-java
-	:init
-	(setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
-	:config
-	(add-hook 'java-mode-hook #'lsp))
-
-      ;; for code action (have to use helm i think)
-    #+end_src
-
-* Snippets
-  using yasnippet for snippet functionality
-  #+begin_src emacs-lisp
-    (use-package yasnippet
-      :config
-      (yas-global-mode 1))
-  #+end_src
-* ORG
-  some improvements for org mode experience
-** Viusals
-   Use org-bullets and change the last three dots.
-   #+begin_src emacs-lisp
-     (setq org-ellipsis "⤵")
-
-     (use-package org-bullets
-       :config
-       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-   #+end_src
-** For other language support
-   for java support in the code block
-   #+begin_src emacs-lisp
-     (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((java . t)))
-   #+end_src
-** Org Roam
-   For managing org files
-   #+begin_src emacs-lisp
-     (use-package org-roam
-       :init
-       (setq org-roam-v2-ack t)
-       :custom
-       (org-roam-directory (file-truename "~/coding/RoamNotes"))
-       :bind (("C-c n l" . org-roam-buffer-toggle)
-	      ("C-c n f" . org-roam-node-find)
-	      ("C-c n g" . org-roam-graph)
-	      ("C-c n i" . org-roam-node-insert)
-	      ("C-c n c" . org-roam-capture)
-	      ;; Dailies
-	      ("C-c n j" . org-roam-dailies-capture-today))
-      :config
-      (org-roam-setup))
-   #+end_src
 * Evil mode
   Best mode known to man
 ** Base
@@ -160,8 +72,112 @@
 			     :prefix my-leader
 			     :non-normal-prefix "C-SPC")
    #+end_src
+* LSP
+** Company mode
+   #+begin_src emacs-lisp
+     (use-package company
+       :hook ((prog-mode) . company-mode)
+       :init
+       (setq company-minimun-prefix 3
+	     company-idle-delay 0))
+
+     ;; for other modes
+     (add-hook 'org-mode-hook #'company-mode)
+   #+end_src
+** LSP base
+   very basic setup for lsp
+   #+begin_src emacs-lisp
+     (use-package lsp-mode
+       :bind
+       (:map lsp-mode-map
+	 ("M-RET" . lsp-execute-code-action))
+       :config
+       (lsp-enable-which-key-integration t)
+
+       ;; turn off the autoformatting
+       (setq lsp-enable-on-type-formatting 1)
+
+       ;; setting the default completion provider for lsp
+       (setq lsp-completion-provider :capf)
+
+       ;; performance tweaks
+       (setq gc-cons-threshold 1000000000)
+       (setq read-process-output-max (* 1024 1024))
+       (setq lsp-idle-delay 0.500))
+   #+end_src
+** Language specific.
+   Some language specific configuration.
+*** Java
+    Set up lsp for java (in my home setup will be using the java 11 but in the work will use java 8)
+    #+begin_src emacs-lisp
+      ;; setup jdt
+      (use-package lsp-java
+	:init
+	(setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
+	:config
+	;; for different runtimes
+	(setq lsp-java-configuration-runtimes '[(:name "JavaSE-1.8" :path "/usr/lib/jvm/java-1.8.0-openjdk-amd64" :default t)])
+	(add-hook 'java-mode-hook #'lsp))
+      
+      ;; for code action (have to use helm i think)
+    #+end_src
+
+* Snippets
+  using yasnippet for snippet functionality
+  #+begin_src emacs-lisp
+    (use-package yasnippet
+      :config
+      (yas-global-mode 1))
+  #+end_src
+* ORG
+  some improvements for org mode experience
+** Viusals
+   Use org-bullets and change the last three dots.
+   #+begin_src emacs-lisp
+     (setq org-ellipsis "⤵")
+
+     (use-package org-bullets
+       :config
+       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+   #+end_src
+** For other language support
+   for java support in the code block
+   #+begin_src emacs-lisp
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((java . t)))
+   #+end_src
+** Org Roam
+   For managing org files
+   #+begin_src emacs-lisp
+     ;; (use-package org-roam
+     ;;   :init
+     ;;   (setq org-roam-v2-ack t)
+     ;;   :custom
+     ;;   (org-roam-directory (file-truename "~/coding/RoamNotes"))
+     ;;   :bind (("C-c n l" . org-roam-buffer-toggle)
+     ;; 	 ("C-c n f" . org-roam-node-find)
+     ;; 	 ("C-c n g" . org-roam-graph)
+     ;; 	 ("C-c n i" . org-roam-node-insert)
+     ;; 	 ("C-c n c" . org-roam-capture)
+     ;; 	 ;; Dailies
+     ;; 	 ("C-c n j" . org-roam-dailies-capture-today))
+     ;;  :config
+     ;;  (org-roam-setup))
+   #+end_src
+** Org mode with evil
+   additional evil mode keybindings for the org mode.
+   [[https://github.com/Somelauw/evil-org-mode][package description]]
+   #+begin_src emacs-lisp
+     (use-package evil-org
+       :after org
+       :hook (org-mode . (lambda () evil-org-mode))
+       :config
+       (require 'evil-org-agenda)
+       (evil-org-agenda-set-keys))
+   #+end_src
 * Visuals
-  Some visual improvements
+  Some visual improvements, only for visuals
 ** Turn off useless mode
    #+begin_src emacs-lisp
      (setq inhibit-startup-message t)
@@ -218,7 +234,7 @@
        :config
        (setq doom-themes-enable-bold t
 	     doom-themes-enable-italic t)
-       (load-theme 'doom-gruvbox-light t)
+       (load-theme 'doom-one t)
 
        ;; Enable flashy visual alert
        (doom-themes-visual-bell-config)
@@ -240,6 +256,52 @@
    #+end_src
 ** Line Number and cursor line
    Enable global line number and cursor line for satisfaction nothing else.
+   #+begin_src emacs-lisp
+     (setq line-move-visual t)
+
+     (global-hl-line-mode 1)
+     (set-face-attribute hl-line-face nil :underline nil)
+
+     (column-number-mode)
+     (global-display-line-numbers-mode t)
+
+     ;; disable for some mode
+     (dolist (mode '(org-mode-hook
+		     term-mode-hook
+		     vterm-mode-hook
+		     eshell-mode-hook))
+       (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+     (electric-pair-mode t)
+   #+end_src
+
+   #+RESULTS:
+   : t
+** Centaur tabs
+   For more visual appearance
+   #+begin_src emacs-lisp
+     (use-package centaur-tabs
+       :demand
+       :init
+       (setq centaur-tabs-style "bar")
+       (setq centaur-tabs-height 32)
+       (setq centaur-tabs-set-icons t)
+       (setq centaur-tabs-set-bar 'over)
+       :config
+       (centaur-tabs-mode t)
+       :bind
+       ("C-<left>" . centaur-tabs-backward)
+       ("C-<right>" . centaur-tabs-forward))
+   #+end_src
+
+   #+RESULTS:
+   : centaur-tabs-forward
+** Line Wrap mode
+   For better reading, enabling the line wrap mode.
+   #+begin_src emacs-lisp
+     (visual-line-mode t)
+   #+end_src
+
 * Keybindings
   some keybindings
   #+begin_src emacs-lisp
