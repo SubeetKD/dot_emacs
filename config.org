@@ -1,5 +1,10 @@
 #+TITLE: My Emacs config
 #+AUTHOR: Subeet Kumar Dutta
+#+STARTUP: overview
+
+* TODO
+1. Better Lsp support.
+   Keybinding for basic lsp things.
 
 * Goal
   The current goal is to have a complete setup of emacs that works with the java development.
@@ -72,22 +77,45 @@
 			     :prefix my-leader
 			     :non-normal-prefix "C-SPC")
    #+end_src
+* Tree sitter
+#+begin_src emacs-lisp
+  (use-package tree-sitter)
+  (use-package tree-sitter-langs)
+
+  (global-tree-sitter-mode)
+#+end_src
 * LSP
 ** Company mode
    #+begin_src emacs-lisp
      (use-package company
-       :hook ((prog-mode) . company-mode)
        :init
-       (setq company-minimun-prefix 3
+       (setq company-minimun-prefix 1
 	     company-idle-delay 0))
 
+     (global-company-mode 1)
      ;; for other modes
-     (add-hook 'org-mode-hook #'company-mode)
+     ;; (add-hook 'org-mode-hook #'company-mode)
    #+end_src
+** FlyCheck
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode))
+#+end_src
+
+#+RESULTS:
+** Lsp-Ui
+#+begin_src emacs-lisp
+  (use-package lsp-ui)
+#+end_src
+
+#+RESULTS:
+
 ** LSP base
    very basic setup for lsp
    #+begin_src emacs-lisp
      (use-package lsp-mode
+       :hook (c++-mode . lsp-deferred)
        :bind
        (:map lsp-mode-map
 	 ("M-RET" . lsp-execute-code-action))
@@ -112,15 +140,19 @@
     #+begin_src emacs-lisp
       ;; setup jdt
       (use-package lsp-java
-	:init
-	(setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
+	;;:init
+	;;(setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
 	:config
 	;; for different runtimes
-	(setq lsp-java-configuration-runtimes '[(:name "JavaSE-1.8" :path "/usr/lib/jvm/java-1.8.0-openjdk-amd64" :default t)])
+	;; (setq lsp-java-configuration-runtimes '[(:name "JavaSE-1.8" :path "/usr/lib/jvm/java-1.8.0-openjdk-amd64" :default t)])
 	(add-hook 'java-mode-hook #'lsp))
       
       ;; for code action (have to use helm i think)
     #+end_src
+*** Cpp
+#+begin_src emacs-lisp
+ 
+#+end_src
 
 * Snippets
   using yasnippet for snippet functionality
@@ -208,7 +240,7 @@
 ** Font
    set font
    #+begin_src emacs-lisp
-     (set-face-attribute 'default nil :font "FiraCode Nerd Font Mono" :height 140)
+     (set-face-attribute 'default nil :font "Menlo" :height 160)
    #+end_src
 
    #+RESULTS:
@@ -299,8 +331,11 @@
 ** Line Wrap mode
    For better reading, enabling the line wrap mode.
    #+begin_src emacs-lisp
-     (visual-line-mode t)
+     (global-visual-line-mode t)
    #+end_src
+
+   #+RESULTS:
+   : t
 
 * Keybindings
   some keybindings

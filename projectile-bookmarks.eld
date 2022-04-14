@@ -1,1 +1,1 @@
-("~/.emacs.d/" "~/IdeaProjects/data-structures/" "~/coding/")
+("~/.emacs.d/" "~/personel/coding/" "~/personel/coding/leetcode/" "~/" "~/personel/config_manager/" "~/Desktop/emacs-setup-bitch/" "~/IdeaProjects/striver-list/" "~/IdeaProjects/library_site/" "~/IdeaProjects/ticket-booking-low-level-system-design/" "~/IdeaProjects/lld-parking-lot/" "~/personel/coding/codeforces/")
