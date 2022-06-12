@@ -1,402 +1,517 @@
-#+TITLE: My Emacs config
+#TITLE: My Emacs config
 #+AUTHOR: Subeet Kumar Dutta
 #+STARTUP: overview
 
-* TODO
-1. Better Lsp support.
-   Keybinding for basic lsp things.
+* Todo
+Basic aim for emacs.
+- [ ] Better note taking app (org mode setup).
+- [ ] LSP setup
 
-* Goal
-  The current goal is to have a complete setup of emacs that works with the java development.
-
-* Setup package.el
-  Add the repos and install use-package
-  #+begin_src emacs-lisp
-    (require 'package)
-
-    (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-		 ("org" . "https://orgmode.org/elpa/")
-		 ("elpa" . "https://elpa.gnu.org/packages/")))
-    (add-to-list 'package-archives
-		 '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-
-    (package-initialize)
-    (unless package-archive-contents
-      (package-refresh-contents))
-
-    ;; install use-package
-    (unless (package-installed-p 'use-package)
-      (package-install 'use-package))
-
-    (require 'use-package)
-
-    (setq use-package-always-ensure t)
-  #+end_src
-* Evil mode
-  Best mode known to man
-** Base
-   Base setup for the evil mode
-   #+begin_src emacs-lisp
-     ;; evil mode
-     (use-package evil
-       :init
-       (setq evil-want-integration t)
-       (setq evil-want-keybinding nil)
-       (setq evil-vsplit-window-right t)
-       (setq evil-split-window-below t)
-       :config
-       (evil-mode 1))
-   #+end_src
-** additional key bindings
-   some additional key bindings for evil mode
-   #+begin_src emacs-lisp
-     ;; additional evil keybindings for better navigation
-     (use-package evil-collection
-       :after evil
-       :config
-       (evil-collection-init))
-
-     ;; for org mode
-     (use-package evil-org
-       :after org
-       :hook (org-mode . (lambda () evil-org-mode))
-       :config
-       (require 'evil-org-agenda)
-       (evil-org-agenda-set-keys))
-   #+end_src
-** Better key mappings
-   Better way to map the keys
-   #+begin_src emacs-lisp
-     (use-package general)
-
-     ;; set global leader
-     (defconst my-leader "SPC")
-
-     (general-create-definer vim-leader-key
-			     :keymaps '(normal visual insert emacs)
-			     :prefix my-leader
-			     :non-normal-prefix "C-SPC")
-   #+end_src
-* Tree sitter
+* Package Setup
+Setup package.
 #+begin_src emacs-lisp
-  (use-package tree-sitter)
-  (use-package tree-sitter-langs)
+   (require 'package)
 
-  (global-tree-sitter-mode)
-#+end_src
-* LSP
-** Company mode
-   #+begin_src emacs-lisp
-     (use-package company
-       :init
-       (setq company-minimun-prefix 1
-	     company-idle-delay 0))
+   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+		   ("org" . "https://orgmode.org/elpa/")
+		   ("elpa" . "https://elpa.gnu.org/packages/")))
+   (add-to-list 'package-archives
+		   '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
-     (global-company-mode 1)
-     ;; for other modes
-     ;; (add-hook 'org-mode-hook #'company-mode)
-   #+end_src
-** FlyCheck
-#+begin_src emacs-lisp
-  (use-package flycheck
-    :ensure t
-    :init (global-flycheck-mode))
+   (package-initialize)
+   (unless package-archive-contents
+     (package-refresh-contents))
+
+   ;; install use-package
+   (unless (package-installed-p 'use-package)
+     (package-install 'use-package))
+
+   (require 'use-package)
+
+   (setq use-package-always-ensure t)
 #+end_src
 
-#+RESULTS:
-** Lsp-Ui
+* General Configuration
+All the configuration without any packages depedency for optimizations.
+** First Basic
 #+begin_src emacs-lisp
-  (use-package lsp-ui)
+  ;; change yes to y
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  ;; When opening a file (like double click) on Mac, use an existing frame
+  (setq ns-pop-up-frames nil)
+
+  ;; But do not resize windows pixelwise, this can cause crashes in some cases
+  ;; where we resize windows too quickly.
+  (setq window-resize-pixelwise nil)
+
+  ;; load my custom functions
+  (load (expand-file-name "subeet-functions.el" user-emacs-directory))
 #+end_src
 
-#+RESULTS:
-
-** LSP base
-   very basic setup for lsp
-   #+begin_src emacs-lisp
-     (use-package lsp-mode
-       :hook (c++-mode . lsp-deferred)
-       :bind
-       (:map lsp-mode-map
-	 ("M-RET" . lsp-execute-code-action))
-       :config
-       (lsp-enable-which-key-integration t)
-
-       ;; turn off the autoformatting
-       (setq lsp-enable-on-type-formatting 1)
-
-       ;; setting the default completion provider for lsp
-       (setq lsp-completion-provider :capf)
-
-       ;; performance tweaks
-       (setq gc-cons-threshold 1000000000)
-       (setq read-process-output-max (* 1024 1024))
-       (setq lsp-idle-delay 0.500))
-   #+end_src
-** Language specific.
-   Some language specific configuration.
-*** Java
-    Set up lsp for java (in my home setup will be using the java 11 but in the work will use java 8)
-    #+begin_src emacs-lisp
-      ;; setup jdt
-      (use-package lsp-java
-	;;:init
-	;;(setq lsp-java-java-path "/usr/lib/jvm/java-11-openjdk-amd64/bin/java")
-	:config
-	;; for different runtimes
-	;; (setq lsp-java-configuration-runtimes '[(:name "JavaSE-1.8" :path "/usr/lib/jvm/java-1.8.0-openjdk-amd64" :default t)])
-	(add-hook 'java-mode-hook #'lsp))
-      
-      ;; for code action (have to use helm i think)
-    #+end_src
-*** Cpp
+** Line Configuration
 #+begin_src emacs-lisp
- 
+  (setq-default truncate-lines t)
+
+  (setq-default tab-width 4)
+
+  (setq-default fill-column 80)
+
+  ;; C-p, C-n etc uses visual lines
+  (setq line-move-visual t)
+
+  ;; follow symlink
+  (setq vc-follow-symlinks t)
 #+end_src
 
-* Snippets
-  using yasnippet for snippet functionality
-  #+begin_src emacs-lisp
-    (use-package yasnippet
-      :config
-      (yas-global-mode 1))
-  #+end_src
-* ORG
-  some improvements for org mode experience
-** Viusals
-   Use org-bullets and change the last three dots.
-   #+begin_src emacs-lisp
-     (setq org-ellipsis "⤵")
+** Backup configuration
+#+begin_src emacs-lisp
+  (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+	backup-by-copying t    ; Don't delink hardlinks
+	version-control t      ; Use version numbers on backups
+	delete-old-versions t  ; Automatically delete excess backups
+	kept-new-versions 20   ; how many of the newest versions to keep
+	kept-old-versions 5    ; and how many of the old
+	)
 
-     (use-package org-bullets
-       :config
-       (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
-   #+end_src
-** For other language support
-   for java support in the code block
-   #+begin_src emacs-lisp
-     (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((java . t)))
-   #+end_src
-** Org Roam
-   For managing org files
-   #+begin_src emacs-lisp
-     ;; (use-package org-roam
-     ;;   :init
-     ;;   (setq org-roam-v2-ack t)
-     ;;   :custom
-     ;;   (org-roam-directory (file-truename "~/coding/RoamNotes"))
-     ;;   :bind (("C-c n l" . org-roam-buffer-toggle)
-     ;; 	 ("C-c n f" . org-roam-node-find)
-     ;; 	 ("C-c n g" . org-roam-graph)
-     ;; 	 ("C-c n i" . org-roam-node-insert)
-     ;; 	 ("C-c n c" . org-roam-capture)
-     ;; 	 ;; Dailies
-     ;; 	 ("C-c n j" . org-roam-dailies-capture-today))
-     ;;  :config
-     ;;  (org-roam-setup))
-   #+end_src
-** Org mode with evil
-   additional evil mode keybindings for the org mode.
-   [[https://github.com/Somelauw/evil-org-mode][package description]]
-   #+begin_src emacs-lisp
-     (use-package evil-org
-       :after org
-       :hook (org-mode . (lambda () evil-org-mode))
-       :config
-       (require 'evil-org-agenda)
-       (evil-org-agenda-set-keys))
-   #+end_src
-* Visuals
-  Some visual improvements, only for visuals
-** Turn off useless mode
-   #+begin_src emacs-lisp
-     (setq inhibit-startup-message t)
+  (setq auto-save-file-name-transforms
+		`((".*" "~/.emacs.d/backup/" t)))
 
-     (scroll-bar-mode -1)
-     (tool-bar-mode -1)
-     (tooltip-mode -1)
+  (setq backup-directory-alist '(("." . "~/.emacs.d/backup")))
+#+end_src
 
-     (menu-bar-mode -1)
-
-     (setq visible-bell 1)
-   #+end_src
-** Setup backup config
-   #+begin_src emacs-lisp
-     (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
-       backup-by-copying t    ; Don't delink hardlinks
-       version-control t      ; Use version numbers on backups
-       delete-old-versions t  ; Automatically delete excess backups
-       kept-new-versions 20   ; how many of the newest versions to keep
-       kept-old-versions 5    ; and how many of the old
-       )
-
-     (setq auto-save-file-name-transforms
-       `((".*" "~/.emacs.d/backup/" t)))
-
-     (setq backup-directory-alist '(("." . "~/MyEmacsBackups")))
-   #+end_src
 ** Font
-   set font
-   #+begin_src emacs-lisp
-     (set-face-attribute 'default nil :font "Menlo" :height 160)
-   #+end_src
+#+begin_src emacs-lisp
+   (set-face-attribut 'default nil :font "ComicCodeLigatures Nerd Font
+  :height 150)
+#+end_src
 
-   #+RESULTS:
+#+RESULTS:
 
-** Which key
-   Show keybindings
-   #+begin_src emacs-lisp
-     (use-package which-key
-       :init (which-key-mode)
-       :diminish which-key-mode
-       :config
-       (setq which-key-idle-delay 0.3))
-   #+end_src
-** Icons
-   Using all-the-icons
-   #+begin_src emacs-lisp
-     (use-package all-the-icons)
-   #+end_src
-** Themes
-   Using doom themes
-   #+begin_src emacs-lisp
-     (use-package doom-themes
-       :config
-       (setq doom-themes-enable-bold t
-	     doom-themes-enable-italic t)
-       (load-theme 'doom-one t)
+** Prog mode setup
+Start electric pair mode in prog mode.
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook #'(lambda () (electric-pair-mode)))
+#+end_src
 
-       ;; Enable flashy visual alert
-       (doom-themes-visual-bell-config)
-       (doom-themes-org-config))
+* Package
+Install all the packages.
+** which key
+Set up which key.
+#+begin_src emacs-lisp
+  (use-package which-key
+    :diminish which-key-mode
+    :init
+    (which-key-mode)
+    (which-key-setup-minibuffer)
+    :config
+    (setq which-key-idle-delay 0.3)
+    (setq which-key-prefix-prefix "◉ ")
+    (setq which-key-sort-order 'which-key-key-order-alpha
+	  which-key-min-display-lines 2
+	  which-key-max-display-columns 4))
+#+end_src
+
+** Evil mode
+Use evil mode, better mode
+*** Base Package
+Install basic package.
+#+begin_src emacs-lisp
+  (use-package evil
+	:init
+	;; (setq evil-want-keybinding t)
+	(setq evil-want-fine-undo t)
+	(setq evil-want-keybinding nil)
+	(setq evil-want-Y-yank-to-eol t)
+	:config
+
+	(evil-set-initial-state 'dashboard-mode 'motion)
+	(evil-set-initial-state 'debugger-mode 'motion)
+	(evil-set-initial-state 'pdf-view-mode 'motion)
+	(evil-set-initial-state 'bufler-list-mode 'emacs)
+
+	;; ----- Keybindings
+	;; I tried using evil-define-key for these. Didn't work.
+	;; (define-key evil-motion-state-map "/" 'swiper)
+	(define-key evil-window-map "\C-q" 'evil-delete-buffer) ;; Maps C-w C-q to evil-delete-buffer (The first C-w puts you into evil-window-map)
+	(define-key evil-window-map "\C-w" 'kill-this-buffer)
+	(define-key evil-motion-state-map "\C-b" 'evil-scroll-up) ;; Makes C-b how C-u is
+
+	;; ----- Setting cursor colors
+	(setq evil-emacs-state-cursor    '("#649bce" box))
+	(setq evil-normal-state-cursor   '("#ebcb8b" box))
+	(setq evil-operator-state-cursor '("#ebcb8b" hollow))
+	(setq evil-visual-state-cursor   '("#677691" box))
+	(setq evil-insert-state-cursor   '("#eb998b" (bar . 2)))
+	(setq evil-replace-state-cursor  '("#eb998b" hbar))
+	(setq evil-motion-state-cursor   '("#ad8beb" box))
+
+	;; ;; Evil-like keybinds for custom-mode-map
+	;; (evil-define-key nil 'custom-mode-map
+	;;   ;; motion
+	;;   (kbd "C-j") 'widget-forward
+	;;   (kbd "C-k") 'widget-backward
+	;;   "q" 'Custom-buffer-done)
+
+	(evil-mode 1))
+
+#+end_src
+*** Evil surrond (need to check)
+#+begin_src emacs-lisp
+  (use-package evil-surround
+	  :defer 2
+	  :config
+	  (global-evil-surround-mode 1))
+#+end_src
+*** Evil org
+#+begin_src emacs-lisp
+  (use-package evil-org
+	:ensure t
+	:after org)
+  (add-hook 'org-mode-hook 'evil-org-mode)
+#+end_src
+*** Evil collection
+#+begin_src emacs-lisp
+  (use-package evil-collection
+	:after evil
+	:config
+	(setq evil-collection-mode-list '(dired (custom cus-edit) (package-menu package) calc diff-mode))
+	(evil-collection-init)
+	;; A few of my own overrides/customizations
+	(evil-collection-define-key 'normal 'dired-mode-map
+	  (kbd "RET") 'dired-find-alternate-file)
+
+	)
+
+  ;; not working right now, from https://jblevins.org/log/dired-open
+  ;; (evil-define-key 'motion 'dired-mode-map "s-o" '(lambda () (interactive)
+  ;; 												  (let ((fn (dired-get-file-for-visit)))
+  ;; 													(start-process "default-app" nil "open" fn))))
+
+  (evil-define-key 'motion 'dired-mode-map "Q" 'kill-this-buffer)
+  (evil-define-key 'motion help-mode-map "q" 'kill-this-buffer)
+  (evil-define-key 'motion calendar-mode-map "q" 'kill-this-buffer)
+#+end_src
+** General.el
+Set all the keybindings.
+#+begin_src emacs-lisp
+  (use-package general
+	:config
+  (general-define-key
+   :states '(normal motion visual)
+   :keymaps 'override
+   :prefix "SPC"
+
+   ;; Top level functions
+   "/" '(subeet/rg :which-key "ripgrep")
+   ";" '(spacemacs/deft :which-key "deft")
+   ":" '(projectile-find-file :which-key "p-find file")
+   "." '(counsel-find-file :which-key "find file")
+   "," '(counsel-recentf :which-key "recent files")
+   "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
+   "SPC" '(counsel-M-x :which-key "M-x")
+   "q" '(save-buffers-kill-terminal :which-key "quit emacs")
+   "r" '(jump-to-register :which-key "registers")
+
+   ;; Lsp setup
+   "l" '(nil :which-key "LSP")
+   "lf" '(nil :which-key "Format")
+   "lfb" '(lsp-format-buffer :which-key "format-buffer")
+   "lfr" '(lsp-format-region :which-key "format-region")
+   "lg" '(nil :which-key "Goto")
+   "lgt" '(lsp-goto-type-definition :which "goto-type-defination")
+   "lr" '(nil :which-key "Refactor")
+   "lrr" '(lsp-rename :which-key "Rename")
+
+  ;; ;; "Applications"
+  "a" '(nil :which-key "applications")
+  "ao" '(org-agenda :which-key "org-agenda")
+  "am" '(mu4e :which-key "mu4e")
+  "aC" '(calc :which-key "calc")
+  "ac" '(org-capture :which-key "org-capture")
+  "aqq" '(org-ql-view :which-key "org-ql-view")
+  "aqs" '(org-ql-search :which-key "org-ql-search")
+
+  "ab" '(nil :which-key "browse url")
+  "abf" '(browse-url-firefox :which-key "firefox")
+  "abc" '(browse-url-chrome :which-key "chrome")
+  "abx" '(xwidget-webkit-browse-url :which-key "xwidget")
+
+  "ad" '(dired :which-key "dired")
+  ;; Buffers
+  "b" '(nil :which-key "buffer")
+  "bb" '(counsel-switch-buffer :which-key "switch buffers")
+  "bd" '(evil-delete-buffer :which-key "delete buffer")
+  "bs" '(subeet/switch-to-scratch-buffer :which-key "scratch buffer")
+  "bm" '(subeet/kill-other-buffers :which-key "kill other buffers")
+  "bi" '(clone-indirect-buffer  :which-key "indirect buffer")
+  "br" '(revert-buffer :which-key "revert buffer")
+
+  ;; Files
+  "f" '(nil :which-key "files")
+  "fb" '(counsel-bookmark :which-key "bookmarks")
+  "ff" '(counsel-find-file :which-key "find file")
+  "fn" '(spacemacs/new-empty-buffer :which-key "new file")
+  "fr" '(counsel-recentf :which-key "recent files")
+  "fR" '(rename-file :which-key "rename file")
+  "fs" '(save-buffer :which-key "save buffer")
+  "fS" '(evil-write-all :which-key "save all buffers")
+  "fo" '(reveal-in-osx-finder :which-key "reveal in finder")
+  "fO" '(subeet/open-buffer-file-mac :which-key "open buffer file")
+  ;; Help/emacs
+  "h" '(nil :which-key "help/emacs")
+
+  "hv" '(counsel-describe-variable :which-key "des. variable")
+  "hb" '(counsel-descbinds :which-key "des. bindings")
+  "hM" '(describe-mode :which-key "des. mode")
+  "hf" '(counsel-describe-function :which-key "des. func")
+  "hF" '(counsel-describe-face :which-key "des. face")
+  "hk" '(describe-key :which-key "des. key")
+
+  "hed" '(subeet/edit-init :which-key "edit dotfile")
+
+  "hm" '(nil :which-key "switch mode")
+  "hme" '(emacs-lisp-mode :which-key "elisp mode")
+  "hmo" '(org-mode :which-key "org mode")
+  "hmt" '(text-mode :which-key "text mode")
+
+  ;; Help/emacs
+  "x" '(nil :which-key "text")
+  "xC" '(subeet/copy-whole-buffer-to-clipboard :which-key "copy whole buffer to clipboard")
+  "xr" '(anzu-query-replace :which-key "find and replace")
+  "xs" '(yas-insert-snippet :which-key "insert yasnippet")
+
+  ;; Toggles
+  "t" '(nil :which-key "toggles")
+  "tT" '(toggle-truncate-lines :which-key "truncate lines")
+  "tv" '(visual-line-mode :which-key "visual line mode")
+  "tn" '(display-line-numbers-mode :which-key "display line numbers")
+  "ta" '(mixed-pitch-mode :which-key "variable pitch mode")
+  "tc" '(visual-fill-column-mode :which-key "visual fill column mode")
+  "tt" '(counsel-load-theme :which-key "load theme")
+  "tw" '(writeroom-mode :which-key "writeroom-mode")
+  "tR" '(read-only-mode :which-key "read only mode")
+  "tI" '(toggle-input-method :which-key "toggle input method")
+  "tr" '(display-fill-column-indicator-mode :which-key "fill column indicator")
+  "tm" '(hide-mode-line-mode :which-key "hide modeline mode")
+
+  ;; Windows
+  "w" '(nil :which-key "window")
+  "wm" '(subeet/toggle-maximize-buffer :which-key "maximize buffer")
+  "wN" '(make-frame :which-key "make frame")
+  "wd" '(evil-window-delete :which-key "delete window")
+  "w-" '(subeet/split-window-vertically-and-switch :which-key "split below")
+  "w/" '(subeet/split-window-horizontally-and-switch :which-key "split right")
+  "wr" '(subeet-hydra-window/body :which-key "hydra window")
+  "wl" '(evil-window-right :which-key "evil-window-right")
+  "wh" '(evil-window-left :which-key "evil-window-left")
+  "wj" '(evil-window-down :which-key "evil-window-down")
+  "wk" '(evil-window-up :which-key "evil-window-up")
+  "wz" '(text-scale-adjust :which-key "text zoom")
+  ) ;; End SPC prefix general.el block
 
 
-     ;; for modeline
-     (use-package doom-modeline
-       :init
-       (doom-modeline-mode 1))
-   #+end_src
-** File Tree
-   Using emacs neotree
-   #+begin_src emacs-lisp
-     (use-package neotree
-       :config
-       ;; for doom themes
-       (doom-themes-neotree-config))
-   #+end_src
-** Line Number and cursor line
-   Enable global line number and cursor line for satisfaction nothing else.
-   #+begin_src emacs-lisp
-     (setq line-move-visual t)
-
-     (global-hl-line-mode 1)
-     (set-face-attribute hl-line-face nil :underline nil)
-
-     (column-number-mode)
-     (global-display-line-numbers-mode t)
-
-     ;; disable for some mode
-     (dolist (mode '(org-mode-hook
-		     term-mode-hook
-		     vterm-mode-hook
-		     eshell-mode-hook))
-       (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-     (electric-pair-mode t)
-   #+end_src
-
-   #+RESULTS:
-   : t
-** Centaur tabs
-   For more visual appearance
-   #+begin_src emacs-lisp
-     (use-package centaur-tabs
-       :demand
-       :init
-       (setq centaur-tabs-style "bar")
-       (setq centaur-tabs-height 32)
-       (setq centaur-tabs-set-icons t)
-       (setq centaur-tabs-set-bar 'over)
-       :config
-       (centaur-tabs-mode t)
-       :bind
-       ("C-<left>" . centaur-tabs-backward)
-       ("C-<right>" . centaur-tabs-forward))
-   #+end_src
-
-   #+RESULTS:
-   : centaur-tabs-forward
-** Line Wrap mode
-   For better reading, enabling the line wrap mode.
-   #+begin_src emacs-lisp
-     (global-visual-line-mode t)
-   #+end_src
-
-   #+RESULTS:
-   : t
-
-* Keybindings
-  some keybindings
-  #+begin_src emacs-lisp
-    (vim-leader-key
-
-      ;; toggle
-      "t" '(:ignore t :which-key "Toggles")
-      "tt" '(counsel-load-theme :which-key "Theme")
-      "tc" '(comment-line :which-key "comment line")
-
-      "tr" '(:ignore t :which-key "Toggle for region")
-      "trc" '(comment-or-uncomment-region :which-key "comment Region")
-
-      "tf" '(:ignore t :which-key "Toggle for neotree")
-      "tff" '(neotree-toggle :which-key "Toggle neotree")
+  (general-def
+	:prefix ","
+	:states 'motion
+	:keymaps 'emacs-lisp-mode-map
+	"" nil
+	"e" '(nil :which-key "eval")
+	"es" '(eval-last-sexp :which-key "eval-sexp")
+	"er" '(eval-region :which-key "eval-region")
+	"eb" '(eval-buffer :which-key "eval-buffer")
 
 
-      ;; window keybinds
-      "w" '(:ignore t :which-key "Window")
-      "wk" '(:ignore t :which-key "Kill Window")
-      ;; "wkk" '(kill-buffer-and-window :which-key "Kill current window")
+	"g" '(counsel-imenu :which-key "imenu")
+	"c" '(check-parens :which-key "check parens")
+	"I" '(indent-region :which-key "indent-region")
+	)
 
-      ;; Buffer Keybindings
-      "b" '(:ignore t :which-key "Buffers")
+	(general-def
+	  :states 'normal
+	  :keymaps 'org-mode-map
+	  "t" 'org-todo
+	  "<return>" 'org-open-at-point-global
+	  "K" 'org-shiftup
+	  "J" 'org-shiftdown
+	  )
 
-      "bb" '(counsel-switch-buffer :which-key "Buffers")
+	(general-def
+	  :states '(normal insert emacs)
+	  :keymaps 'org-mode-map
+	  "M-[" 'org-metaleft
+	  "M-]" 'org-metaright
+	  "C-M-=" 'ap/org-count-words
+	  "s-r" 'org-refile
+	  )
 
-      ;; kill buffer
-      "bk" '(:ignore t :which-key "Kill Buffer")
-      "bkk" '(kill-current-buffer :which-key "Current")
-      "bkb" '(kill-buffer :which-key "Other")
+	;; Org-src - when editing an org source block
+	(general-def
+	  :prefix ","
+	  :states 'normal
+	  :keymaps 'org-src-mode-map
+	  "b" '(nil :which-key "org src")
+	  "bc" 'org-edit-src-abort
+	  "bb" 'org-edit-src-exit
+	  )
 
-      ;; File related stuff
-      "f" '(:ignore t :which-key "Files")
-      "ff" '(counsel-find-file :which-key "Find files")
+  ;;  (define-key org-src-mode-map (kbd "C-c C-c") #'org-edit-src-exit)
 
-      ;; Project Commands
-      "p" '(:ignore t :which-key "Project")
-      "pp" '(counsel-projectile-switch-project :which-key "Switch Project")
-      "pf" '(counsel-projectile-find-file :which-key "Find File")
-      ;; "pg" (counsel-projectile-rg :which-key "Search String")
+  (general-define-key
+   :prefix ","
+   :states 'motion
+   :keymaps '(org-mode-map) ;; Available in org mode, org agenda
+   "" nil
+   "A" '(org-archive-subtree-default :which-key "org-archive")
+   "a" '(org-agenda :which-key "org agenda")
+   "6" '(org-sort :which-key "sort")
+   "c" '(org-capture :which-key "org-capture")
+   "s" '(org-schedule :which-key "schedule")
+   "S" '(subeet/org-schedule-tomorrow :which-key "schedule")
+   "d" '(org-deadline :which-key "deadline")
+   "g" '(counsel-org-goto :which-key "goto heading")
+   "t" '(counsel-org-tag :which-key "set tags")
+   "p" '(org-set-property :which-key "set property")
+   "r" '(subeet/org-refile-this-file :which-key "refile in file")
+   "e" '(org-export-dispatch :which-key "export org")
+   "B" '(org-toggle-narrow-to-subtree :which-key "toggle narrow to subtree")
+   "V" '(subeet/org-set-startup-visibility :which-key "startup visibility")
+   "H" '(org-html-convert-region-to-html :which-key "convert region to html")
 
-      ;; Git commands
-      "g" '(:ignore t :which-key "Git")
-      "gs" '(magit-status :which-key "Status")
+   ;; org-babel
+   "b" '(nil :which-key "babel")
+   "bt" '(org-babel-tangle :which-key "org-babel-tangle")
+   "bb" '(org-edit-special :which-key "org-edit-special")
+   "bc" '(org-edit-src-abort :which-key "org-edit-src-abort")
+   "bk" '(org-babel-remove-result-one-or-many :which-key "org-babel-remove-result-one-or-many")
 
-      ;; LSP Keybindings (WIP)
-      "l" '(:ignore t :which-key "LSP")
-      "lc" '(:ignore t :which-key "Code")
-      "lca" '(helm-lsp-code-actions :which-key "Code Actions")
-      "lff" '(lsp-format-buffer :which-key "Format file"))
-  #+end_src
-* Searcher
-  File searcher, search in buffer and other implementation
+   "x" '(nil :which-key "text")
+   ;; "xb" (spacemacs|org-emphasize subeet/org-bold ?*)
+   ;; "xb" (spacemacs|org-emphasize subeet/org-bold ?*)
+   ;; "xc" (spacemacs|org-emphasize subeet/org-code ?~)
+   ;; "xi" (spacemacs|org-emphasize subeet/org-italic ?/)
+   ;; "xs" (spacemacs|org-emphasize subeet/org-strike-through ?+)
+   ;; "xu" (spacemacs|org-emphasize subeet/org-underline ?_)
+   ;; "xv" (spacemacs|org-emphasize subeet/org-verbose ?~) ;; I realized that ~~ is the same and better than == (Github won't do ==)
+
+   ;; insert
+   "i" '(nil :which-key "insert")
+
+   "it" '(nil :which-key "tables")
+   "itt" '(org-table-create :which-key "create table")
+   "itl" '(org-table-insert-hline :which-key "table hline")
+
+   "il" '(org-insert-link :which-key "link")
+
+   ;; clocking
+   "c" '(nil :which-key "clocking")
+   "ci" '(org-clock-in :which-key "clock in")
+   "co" '(org-clock-out :which-key "clock out")
+   "cj" '(org-clock-goto :which-key "jump to clock")
+   )
+
+
+  (general-define-key
+   :prefix ","
+   :states 'motion
+   :keymaps '(org-agenda-mode-map) ;; Available in org mode, org agenda
+   "" nil
+   "a" '(org-agenda :which-key "org agenda")
+   "c" '(org-capture :which-key "org-capture")
+   "s" '(org-agenda-schedule :which-key "schedule")
+   "d" '(org-agenda-deadline :which-key "deadline")
+   "t" '(org-agenda-set-tags :which-key "set tags")
+   ;; clocking
+   "c" '(nil :which-key "clocking")
+   "ci" '(org-agenda-clock-in :which-key "clock in")
+   "co" '(org-agenda-clock-out :which-key "clock out")
+   "cj" '(org-clock-goto :which-key "jump to clock")
+   )
+
+  ;; All-mode keymaps
+  (general-def
+	:keymaps 'override
+
+	;; Emacs --------
+	"M-x" 'counsel-M-x
+	"ß" 'evil-window-next ;; option-s
+	"Í" 'other-frame ;; option-shift-s
+	"C-S-B" 'counsel-switch-buffer
+	"∫" 'counsel-switch-buffer ;; option-b
+	"s-o" 'subeet-hydra-window/body
+
+	;; Remapping normal help features to use Counsel version
+	"C-h v" 'counsel-describe-variable
+	"C-h o" 'counsel-describe-symbol
+	"C-h f" 'counsel-describe-function
+	"C-h F" 'counsel-describe-face
+
+	;; Editing ------
+	"M-v" 'simpleclip-paste
+	"M-V" 'evil-paste-after ;; shift-paste uses the internal clipboard
+	"M-c" 'simpleclip-copy
+	"M-u" 'capitalize-dwim ;; Default is upcase-dwim
+	"M-U" 'upcase-dwim ;; M-S-u (switch upcase and capitalize)
+	"C-c u" 'subeet/split-and-close-sentence
+
+	;; Utility ------
+	"C-c c" 'org-capture
+	"C-c a" 'org-agenda
+	"C-s" 'counsel-grep-or-swiper ;; Large files will use grep (faster)
+	"s-\"" 'ispell-word ;; that's super-shift-'
+	"M-+" 'subeet/calc-speaking-time
+
+	;; super-number functions
+	"s-1" 'mw-thesaurus-lookup-dwim
+	"s-2" 'ispell-buffer
+	"s-3" 'revert-buffer
+	"s-4" '(lambda () (interactive) (counsel-file-jump nil subeet/dropbox))
+	)
+
+  ;; Non-insert mode keymaps
+  (general-def
+	:states '(normal visual motion)
+	"gc" 'comment-dwim
+	"gC" 'comment-line
+	"j" 'evil-next-visual-line ;; I prefer visual line navigation
+	"k" 'evil-previous-visual-line ;; ""
+	"|" '(lambda () (interactive) (org-agenda nil "n")) ;; Opens my n custom org-super-agenda view
+	"C-|" '(lambda () (interactive) (org-agenda nil "m")) ;; Opens my m custom org-super-agenda view
+	)
+
+  ;; Insert keymaps
+  ;; Many of these are emulating standard Emacs bindings in Evil insert mode, such as C-a, or C-e.
+  (general-def
+	:states '(insert)
+	"C-a" 'evil-beginning-of-visual-line
+	"C-e" 'evil-end-of-visual-line
+	"C-S-a" 'evil-beginning-of-line
+	"C-S-e" 'evil-end-of-line
+	"C-n" 'evil-next-visual-line
+	"C-p" 'evil-previous-visual-line
+	)
+
+  ;; Xwidget ------
+  (general-define-key :states 'normal :keymaps 'xwidget-webkit-mode-map 
+					  "j" 'xwidget-webkit-scroll-up-line
+					  "k" 'xwidget-webkit-scroll-down-line
+					  "gg" 'xwidget-webkit-scroll-top
+					  "G" 'xwidget-webkit-scroll-bottom)
+
+  ;; 'q' kills help buffers rather than just closing the window
+  ;; (general-define-key :keymaps '(help-mode-map calendar-mode-map) "q" 'kill-this-buffer)
+
+  ) ;; end general.el use-package
+
+#+end_src
+
 ** Ivy, swiper and counsel
    #+begin_src emacs-lisp
      (use-package ivy
        :diminish ivy
        :config
-       (ivy-mode)
+       (ivy-mode 1)
+       (counsel-mode 1)
        (setq ivy-use-virtual-buffers t)
        (setq enable-recursive-minibuffers t)
        (global-set-key (kbd "C-s") 'swiper)
@@ -417,31 +532,224 @@
      (use-package swiper
        :after ivy)
    #+end_src
-** Project
-   Using projectile for the same in the projects
-   #+begin_src emacs-lisp
-     ;; projectile configuration
-     (use-package projectile
-       :diminish projectile-mode
-       :config (projectile-mode)
-       :custom (projectile-completion-system 'ivy)
-       :bind-keymap
-       ("C-c p" . projectile-command-map)
-       :init
-       (when (file-directory-p "~/IdeaProjects")
-	 (setq projectile-project-search-path '("~/IdeaProjects")))
-       (setq projectile-switch-project-action #'projectile-dired))
 
-     ;; better integration between counsel and projectile
-     (use-package counsel-projectile
-       :config (counsel-projectile-mode))
-   #+end_src
-* DAP mode
-  Debugging adapter protocal
-  TODO: have to add keymapings for it.
-** Basic configuration
-   #+begin_src emacs-lisp
-     ;; enabling some of the featurues
-     (setq dap-auto-configure-features '(sessions locals controls tooltip))
-   #+end_src
+** Company
+Use company for code completion.
+#+begin_src emacs-lisp
+  (use-package company
+	:diminish company-mode
+	:general
+	(general-define-key :keymaps 'company-active-map
+						"C-j" 'company-select-next
+						"C-k" 'company-select-previous)
+	:init
+	;; These configurations come from Doom Emacs:
+	(add-hook 'after-init-hook 'global-company-mode)
+	(setq company-minimum-prefix-length 2
+		  company-tooltip-limit 14
+		  company-tooltip-align-annotations t
+		  company-require-match 'never
+		  company-global-modes '(not erc-mode message-mode help-mode gud-mode)
+		  company-frontends
+		  '(company-pseudo-tooltip-frontend  ; always show candidates in overlay tooltip
+			company-echo-metadata-frontend)  ; show selected candidate docs in echo area
+		  company-backends '(company-capf company-files company-keywords)
+		  company-auto-complete nil
+		  company-auto-complete-chars nil
+		  company-dabbrev-other-buffers nil
+		  company-dabbrev-ignore-case nil
+		  company-dabbrev-downcase nil)
 
+	:config
+	(setq company-idle-delay 0.35)
+	:custom-face
+	(company-tooltip ((t (:family "Monaco")))))
+
+
+  ;; (use-package company-box
+  ;;   :hook (company-mode . company-box-mode)
+  ;;   :init
+  ;;   (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+  ;;   (setq company-box-icons-elisp
+  ;;    '((fa_tag :face font-lock-function-name-face) ;; Function
+  ;;      (fa_cog :face font-lock-variable-name-face) ;; Variable
+  ;;      (fa_cube :face font-lock-constant-face) ;; Feature
+  ;;      (md_color_lens :face font-lock-doc-face))) ;; Face
+  ;;   :config
+  ;;   (require 'all-the-icons)
+  ;;   (setf (alist-get 'min-height company-box-frame-parameters) 6)
+  ;;   (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+  ;;   )
+#+end_src
+
+#+RESULTS:
+
+** Prescient
+Better sorting algo (don't know how much this is better).
+#+begin_src emacs-lisp
+  (use-package prescient
+	:config
+	(setq-default history-length 1000)
+	(setq-default prescient-history-length 1000) ;; More prescient history
+	(prescient-persist-mode +1))
+
+  ;; Use `prescient' for Ivy menus.
+  (use-package ivy-prescient
+	:after ivy
+	:config
+	;; don't prescient sort these commands
+	(dolist (command '(org-ql-view counsel-find-file))
+	  (setq ivy-prescient-sort-commands (append ivy-prescient-sort-commands (list command))))
+	(ivy-prescient-mode +1))
+
+  (use-package company-prescient
+	:defer 2
+	:after company
+	:config
+	(company-prescient-mode +1))
+#+end_src
+
+** LSP
+Use LSP for coding.
+*** Base Package
+Install the base package for LSP.
+TODO: have to complete this.
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+	:hook ((c-mode c++-mode d-mode go-mode js-mode kotlin-mode python-mode typescript-mode
+			vala-mode web-mode)
+		   . lsp)
+	:init
+	(setq ;; lsp-keymap-prefix "H-l"
+		  lsp-rust-analyzer-proc-macro-enable t)
+	:config
+	(lsp-enable-which-key-integration t))
+
+  ;; enable which key integration
+  (with-eval-after-load 'lsp-mode
+	(add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
+
+  (evil-define-key 'normal lsp-mode-map (kbd "SPC l") lsp-command-map)
+
+  (use-package lsp-ui
+	:init
+	(setq lsp-ui-doc-position 'at-point
+		  lsp-ui-doc-show-with-mouse nil)
+	:bind (("C-c d" . lsp-ui-doc-show)
+		   ("C-c I" . lsp-ui-imenu)))
+
+  (use-package flycheck
+	:defer)
+#+end_src
+*** LSP java
+Setup LSP for java.
+#+begin_src emacs-lisp
+  (use-package lsp-java
+	:config
+	(add-hook 'java-mode-hook #'lsp))
+#+end_src
+
+#+RESULTS:
+: t
+
+** Projectile
+Projectile for maintaining projects.
+#+begin_src emacs-lisp
+  (use-package projectile
+	:defer t
+	:init
+	(projectile-mode +1))
+#+end_src
+
+Use counsel projectile for better switching.
+#+begin_src emacs-lisp
+  (use-package counsel-projectile
+	:config (counsel-projectile-mode))
+#+end_src
+
+#+RESULTS:
+: t
+
+* Modeline
+#+begin_src emacs-lisp
+  ;; Disables showing system load in modeline, useless anyway
+  (setq display-time-default-load-average nil)
+
+  (line-number-mode)
+  (column-number-mode)
+  (display-time-mode -1)
+  (size-indication-mode -1)
+
+  (use-package doom-modeline
+	:init (doom-modeline-mode)
+	:config
+	(setq doom-modeline-buffer-file-name-style 'file-name ;; Just show file name (no path)
+		  doom-modeline-enable-word-count t
+		  doom-modeline-buffer-encoding nil
+		  doom-modeline-icon t ;; Enable/disable all icons
+		  doom-modeline-modal-icon nil ;; Icon for Evil mode
+		  doom-modeline-major-mode-icon t
+		  doom-modeline-major-mode-color-icon t
+		  doom-modeline-bar-width 3))
+
+  ;; Configure modeline text height based on the computer I'm on.
+  ;; These variables are used in the Themes section to ensure the modeline
+  ;; stays the right size no matter what theme I use.
+	(setq subeet-doom-modeline-text-height 140)  ;; If desktop
+
+	(setq doom-modeline-height 1)  ;; If desktop
+#+end_src
+
+* Themes and Icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons)
+
+  (setq subeet-doom-modeline-text-height 135)
+
+  (use-package doom-themes
+	:after mixed-pitch
+	:config
+	(doom-themes-visual-bell-config)
+	(doom-themes-org-config)
+	:custom-face
+	(org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
+	;; Keep the modeline proper every time I use these themes.
+	(mode-line ((t (:height ,subeet-doom-modeline-text-height))))
+	(mode-line-inactive ((t (:height ,subeet-doom-modeline-text-height))))
+	(org-scheduled-previously ((t (:background "red")))))
+
+  (use-package kaolin-themes
+	:config
+	(setq kaolin-themes-modeline-border nil)
+	:custom-face
+	;; Keep the modeline proper every time I use these themes.
+	(mode-line ((t (:height ,subeet-doom-modeline-text-height))))
+	(mode-line-inactive ((t (:height ,subeet-doom-modeline-text-height))))
+	;; Disable underline for org deadline warnings. I don't like the way it looks.
+	(org-warning ((t (:underline nil))))
+	;; Darkens the org-ellipsis (first unset the color, then give it shadow)
+	(org-ellipsis ((t (:foreground unspecified :height 0.8 :inherit 'shadow)))))
+
+  (use-package modus-themes
+	:init
+	(setq modus-themes-italic-constructs t
+		  modus-themes-bold-constructs nil
+		  modus-themes-region '(bg-only no-extend)
+		  modus-themes-hl-line '(accented) 
+		  modus-themes-syntax '(yellow-comments)
+		  modus-themes-mode-line '(accented borderless)) ;; Color modeline in active window, remove border
+	(setq modus-themes-headings ;; Makes org headings more colorful
+		  '((t . (rainbow))))
+	(modus-themes-load-themes)
+	:custom-face
+	(org-ellipsis ((t (:height 0.8 :inherit 'shadow))))
+	;; Keep the modeline proper every time I use these themes.
+	(mode-line ((t (:height ,subeet-doom-modeline-text-height))))
+	(mode-line-inactive ((t (:height ,subeet-doom-modeline-text-height)))))
+
+  ;; Loading theme based on the time.
+  (let ((hour (string-to-number (substring (current-time-string) 11 13))))
+	(if (or (> hour 16) (< hour 7))
+		(load-theme 'doom-one t) ;; Night
+	  (load-theme 'doom-opera-light t))) ;; Day
+#+end_src
